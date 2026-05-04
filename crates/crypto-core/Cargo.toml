@@ -1,0 +1,12 @@
+[package]
+name = "crypto-core"
+version.workspace = true
+edition.workspace = true
+description = "Core crypto engine contracts, domain model, services, and facade."
+
+[lib]
+name = "crypto_core"
+path = "src/lib.rs"
+
+[dev-dependencies]
+crypto-adapters = { path = "../crypto-adapters" }

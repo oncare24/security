@@ -1,0 +1,15 @@
+[package]
+name = "crypto-adapters"
+version.workspace = true
+edition.workspace = true
+description = "Concrete AES-GCM, ML-KEM, and RNG adapters for crypto-core."
+
+[lib]
+name = "crypto_adapters"
+path = "src/lib.rs"
+
+[dependencies]
+aes-gcm = "0.10.3"
+crypto-core = { path = "../crypto-core" }
+oqs = { version = "0.11.0", default-features = false, features = ["std", "ml_kem", "vendored"] }
+rand = "0.10.0"

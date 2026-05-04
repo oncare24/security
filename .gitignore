@@ -1,0 +1,53 @@
+# Rust build outputs
+target/
+**/target/
+
+# Compiled binaries / libraries
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib
+*.lib
+*.a
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+
+# Java / Gradle build outputs
+.gradle/
+build/
+out/
+*.class
+bin/
+**/bin/
+
+# Environment / secrets
+.env
+*.env
+.env.*
+*.key
+*.pem
+*.p12
+*.jks
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local cargo config
+.cargo/config.toml
+
+# Keep env templates trackable
+!.env.example
+
+# vendor
+/vendor

@@ -1,0 +1,18 @@
+[package]
+name = "crypto-ffi"
+version.workspace = true
+edition.workspace = true
+description = "Placeholder crate for future FFI facade over crypto-core."
+
+[lib]
+name = "crypto_ffi"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+doctest = false
+test = false
+
+[dependencies]
+crypto-adapters = { path = "../crypto-adapters" }
+crypto-core = { path = "../crypto-core" }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"

@@ -1,0 +1,13 @@
+[package]
+name = "app-support"
+version.workspace = true
+edition.workspace = true
+description = "Application-boundary support layer around crypto-core."
+
+[lib]
+name = "app_support"
+path = "src/lib.rs"
+
+[dependencies]
+crypto-adapters = { path = "../crypto-adapters" }
+crypto-core = { path = "../crypto-core" }
