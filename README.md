@@ -37,6 +37,25 @@
 
 본 프로젝트에서 배포하는 `crypto_ffi.dll`은 위 라이브러리들을 사용하여 빌드됩니다.
 
+### Diagram icons
+
+README에 포함된 보안 구조도는 프로젝트 설명을 위해 직접 작성한 다이어그램입니다.
+
+다이어그램에 사용된 일부 아이콘은 Magnific/Flaticon의 Free PNG 아이콘을 기반으로 사용했습니다.  
+무료 PNG 아이콘은 출처 표기가 필요한 조건으로 사용했습니다. Premium SVG assets are not included in this repository.
+
+- Icon source: https://www.magnific.com/
+- License note: Free PNG icons require attribution. Premium SVG assets are not included in this repository.
+
+- Server icon: [Magnific/Flaticon icon](https://www.magnific.com/icon/server_1067279#fromView=search&page=1&position=7&uuid=cbdc1f67-6a19-4e83-b7e2-00fdec49382d)
+- Key icon: [Magnific/Flaticon icon](https://www.magnific.com/icon/key_18283644#fromView=search&page=1&position=7&uuid=ffe0cc53-3044-43cf-acdc-667a2a98be86)
+- Envelope icon: [Magnific/Flaticon icon](https://www.magnific.com/icon/email_477572#fromView=search&page=1&position=0&uuid=226b987c-a040-4038-8f6f-4ae582836a10)
+- Log icon: [Magnific/Flaticon icon](https://www.magnific.com/icon/file_15679064#fromView=search&page=1&position=10&uuid=1ac68f3c-0fd8-457b-9cb9-d9213100f205)
+- Tag icon: [Magnific/Flaticon icon](https://www.magnific.com/icon/mark_11079999#fromView=search&page=1&position=5&uuid=d3bcd35d-73ea-464d-8fbf-0f77cceccb11)
+- Dice icon: [Magnific/Flaticon icon](https://www.magnific.com/icon/dice_16164370#fromView=search&page=1&position=11&uuid=47d0be42-774c-4544-a375-18dd398a5918)
+- Clock icon: [Magnific/Flaticon icon](https://www.magnific.com/icon/1-minute_3801033#fromView=search&page=1&position=3&uuid=902667a5-8c98-46f0-a767-990cfc1eebbc)
+- Ciphertext icon: [Magnific/Flaticon icon](https://www.magnific.com/icon/binary-code_6666584)
+
 ---
 
 ## 2. 백엔드 서버 DB에 추가할 컬럼들
