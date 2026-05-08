@@ -38,6 +38,11 @@ interface CryptoFfiNative extends Library {
             FfiByteBuffer.ByReference outBuffer
     );
 
+    int crypto_ffi_generate_mlkem_keypair(
+            Pointer handle,
+            FfiByteBuffer.ByReference outBuffer
+    );
+
     int crypto_ffi_encrypt_package(
             Pointer handle,
             FfiEncryptPackageRequest.ByReference request,

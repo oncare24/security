@@ -51,6 +51,13 @@ struct KeyEnvelopeWire<'a> {
     encapsulated_key: &'a [u8],
 }
 
+#[derive(Serialize)]
+struct MlKemKeypairWire<'a> {
+    algorithm: &'static str,
+    public_key: &'a [u8],
+    private_key: &'a [u8],
+}
+
 // WireOwned 구조체
 // 역직렬화한 뒤 Rust 내부 객체로 옮기기 위함
 #[derive(Deserialize)]
@@ -94,6 +101,53 @@ pub extern "C" fn crypto_ffi_byte_buffer_free(buffer: FfiByteBuffer) -> FfiError
 
 //  datakey 생성하고 32바이트 Key_value만 겨로가 버퍼로 돌려 받음
 #[unsafe(no_mangle)]
+pub extern "C" fn crypto_ffi_generate_mlkem_keypair(
+    handle: *mut FfiFacadeHandle,
+    out_buffer: *mut FfiByteBuffer,
+) -> FfiErrorCode {
+    catch_ffi_panic(|| {
+        if out_buffer.is_null() {
+            return fail_with_message(FfiErrorCode::NullPointer, "null output buffer");
+        }
+
+        let handle = match unsafe { handle_from_ptr(handle) } {
+            Ok(handle) => handle,
+            Err(_) => return fail_with_message(FfiErrorCode::InvalidHandle, "invalid handle"),
+        };
+
+        let (public_key, private_key) = match handle.core().generate_mlkem_keypair() {
+            Ok(value) => value,
+            Err(_) => {
+                return fail_with_message(
+                    FfiErrorCode::CryptoError,
+                    "crypto operation failed while generating ML-KEM keypair",
+                );
+            }
+        };
+
+        let serialized = match serde_json::to_vec(&MlKemKeypairWire {
+            algorithm: "ML-KEM-1024",
+            public_key: &public_key,
+            private_key: &private_key,
+        }) {
+            Ok(bytes) => bytes,
+            Err(_) => {
+                return fail_with_message(
+                    FfiErrorCode::InternalError,
+                    "failed to serialize ML-KEM keypair JSON",
+                );
+            }
+        };
+
+        unsafe {
+            *out_buffer = vec_into_buffer(serialized);
+        }
+
+        FfiErrorCode::Ok
+    })
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn crypto_ffi_generate_data_key(
     handle: *mut FfiFacadeHandle,
     key_id: FfiBorrowedBytes,
@@ -122,30 +176,30 @@ pub extern "C" fn crypto_ffi_generate_data_key(
             },
         };
 
-        let key_id_string = match unsafe { crate::types::borrowed_bytes_as_string(data_key_input.key_id) } {
+        let key_id_string = match unsafe {
+            crate::types::borrowed_bytes_as_string(data_key_input.key_id)
+        } {
             Ok(value) => value,
             Err(FfiErrorCode::NullPointer) => {
-                return fail_with_message(FfiErrorCode::NullPointer, "null data key id pointer")
+                return fail_with_message(FfiErrorCode::NullPointer, "null data key id pointer");
             }
             Err(FfiErrorCode::InvalidUtf8) => {
-                return fail_with_message(FfiErrorCode::InvalidUtf8, "invalid UTF-8 in data key id")
+                return fail_with_message(FfiErrorCode::InvalidUtf8, "invalid UTF-8 in data key id");
             }
             Err(code) => return fail_with_message(code, "invalid data key id"),
         };
 
-        let data_key = match handle
-            .core()
-            .generate_data_key(
-                key_id_string,
-                data_key_input.created_at.to_system_time(),
-                data_key_input.expires_at.to_system_time(),
-            ) {
+        let data_key = match handle.core().generate_data_key(
+            key_id_string,
+            data_key_input.created_at.to_system_time(),
+            data_key_input.expires_at.to_system_time(),
+        ) {
             Ok(data_key) => data_key,
             Err(_) => {
                 return fail_with_message(
                     FfiErrorCode::CryptoError,
                     "crypto operation failed while generating data key",
-                )
+                );
             }
         };
 
@@ -185,20 +239,29 @@ pub extern "C" fn crypto_ffi_encrypt_package(
                 return fail_with_message(
                     FfiErrorCode::NullPointer,
                     "null pointer in encrypt request bytes",
-                )
+                );
             }
             Err(FfiErrorCode::InvalidUtf8) => {
-                return fail_with_message(FfiErrorCode::InvalidUtf8, "invalid UTF-8 in encrypt request")
+                return fail_with_message(
+                    FfiErrorCode::InvalidUtf8,
+                    "invalid UTF-8 in encrypt request",
+                );
             }
             Err(code) => return fail_with_message(code, "invalid encrypt request"),
         };
         let data_key = match unsafe { data_key_from_ffi(request.data_key) } {
             Ok(value) => value,
             Err(FfiErrorCode::NullPointer) => {
-                return fail_with_message(FfiErrorCode::NullPointer, "null pointer in data key input")
+                return fail_with_message(
+                    FfiErrorCode::NullPointer,
+                    "null pointer in data key input",
+                );
             }
             Err(FfiErrorCode::InvalidUtf8) => {
-                return fail_with_message(FfiErrorCode::InvalidUtf8, "invalid UTF-8 in data key input")
+                return fail_with_message(
+                    FfiErrorCode::InvalidUtf8,
+                    "invalid UTF-8 in data key input",
+                );
             }
             Err(code) => return fail_with_message(code, "invalid data key input"),
         };
@@ -209,7 +272,7 @@ pub extern "C" fn crypto_ffi_encrypt_package(
                 return fail_with_message(
                     FfiErrorCode::CryptoError,
                     "crypto operation failed while encrypting package",
-                )
+                );
             }
         };
 
@@ -219,7 +282,7 @@ pub extern "C" fn crypto_ffi_encrypt_package(
                 return fail_with_message(
                     FfiErrorCode::InternalError,
                     "failed to serialize CryptoPackage JSON",
-                )
+                );
             }
         };
 
@@ -256,7 +319,7 @@ pub extern "C" fn crypto_ffi_decrypt_package(
         let package_bytes = match unsafe { borrowed_bytes_as_slice(request.package) } {
             Ok(bytes) => bytes,
             Err(_) => {
-                return fail_with_message(FfiErrorCode::NullPointer, "null package bytes pointer")
+                return fail_with_message(FfiErrorCode::NullPointer, "null package bytes pointer");
             }
         };
         if package_bytes.is_empty() {
@@ -266,7 +329,10 @@ pub extern "C" fn crypto_ffi_decrypt_package(
         let private_key = match unsafe { borrowed_bytes_as_slice(request.private_key) } {
             Ok(bytes) => bytes,
             Err(_) => {
-                return fail_with_message(FfiErrorCode::NullPointer, "null private key bytes pointer")
+                return fail_with_message(
+                    FfiErrorCode::NullPointer,
+                    "null private key bytes pointer",
+                );
             }
         };
         if private_key.is_empty() {
@@ -293,7 +359,7 @@ pub extern "C" fn crypto_ffi_decrypt_package(
                 return fail_with_message(
                     FfiErrorCode::CryptoError,
                     "crypto operation failed while decrypting package",
-                )
+                );
             }
         };
 
@@ -332,7 +398,10 @@ pub extern "C" fn crypto_ffi_create_key_envelope(
         let public_key = match unsafe { borrowed_bytes_as_slice(request.public_key) } {
             Ok(bytes) => bytes,
             Err(_) => {
-                return fail_with_message(FfiErrorCode::NullPointer, "null public key bytes pointer")
+                return fail_with_message(
+                    FfiErrorCode::NullPointer,
+                    "null public key bytes pointer",
+                );
             }
         };
         if public_key.is_empty() {
@@ -346,24 +415,32 @@ pub extern "C" fn crypto_ffi_create_key_envelope(
         let data_key = match unsafe { data_key_from_ffi(request.data_key) } {
             Ok(value) => value,
             Err(FfiErrorCode::NullPointer) => {
-                return fail_with_message(FfiErrorCode::NullPointer, "null pointer in data key input")
+                return fail_with_message(
+                    FfiErrorCode::NullPointer,
+                    "null pointer in data key input",
+                );
             }
             Err(FfiErrorCode::InvalidUtf8) => {
-                return fail_with_message(FfiErrorCode::InvalidUtf8, "invalid UTF-8 in data key input")
+                return fail_with_message(
+                    FfiErrorCode::InvalidUtf8,
+                    "invalid UTF-8 in data key input",
+                );
             }
             Err(code) => return fail_with_message(code, "invalid data key input"),
         };
 
-        let envelope = match handle
-            .core()
-            .create_key_envelope(&data_key, request.owner_id, owner_type, public_key)
-        {
+        let envelope = match handle.core().create_key_envelope(
+            &data_key,
+            request.owner_id,
+            owner_type,
+            public_key,
+        ) {
             Ok(value) => value,
             Err(_) => {
                 return fail_with_message(
                     FfiErrorCode::CryptoError,
                     "crypto operation failed while creating key envelope",
-                )
+                );
             }
         };
 
@@ -407,7 +484,7 @@ pub extern "C" fn crypto_ffi_open_key_envelope(
         let envelope_bytes = match unsafe { borrowed_bytes_as_slice(request.envelope) } {
             Ok(bytes) => bytes,
             Err(_) => {
-                return fail_with_message(FfiErrorCode::NullPointer, "null envelope bytes pointer")
+                return fail_with_message(FfiErrorCode::NullPointer, "null envelope bytes pointer");
             }
         };
         if envelope_bytes.is_empty() {
@@ -417,7 +494,10 @@ pub extern "C" fn crypto_ffi_open_key_envelope(
         let private_key = match unsafe { borrowed_bytes_as_slice(request.private_key) } {
             Ok(bytes) => bytes,
             Err(_) => {
-                return fail_with_message(FfiErrorCode::NullPointer, "null private key bytes pointer")
+                return fail_with_message(
+                    FfiErrorCode::NullPointer,
+                    "null private key bytes pointer",
+                );
             }
         };
         if private_key.is_empty() {
@@ -445,7 +525,7 @@ pub extern "C" fn crypto_ffi_open_key_envelope(
                 return fail_with_message(
                     FfiErrorCode::CryptoError,
                     "crypto operation failed while opening key envelope",
-                )
+                );
             }
         };
 
@@ -482,30 +562,44 @@ pub extern "C" fn crypto_ffi_create_additional_recipient_envelope(
         };
 
         let request = unsafe { *request };
-        let source_envelope_bytes = match unsafe { borrowed_bytes_as_slice(request.source_envelope) } {
-            Ok(bytes) => bytes,
-            Err(_) => {
-                return fail_with_message(FfiErrorCode::NullPointer, "null source envelope bytes pointer")
-            }
-        };
+        let source_envelope_bytes =
+            match unsafe { borrowed_bytes_as_slice(request.source_envelope) } {
+                Ok(bytes) => bytes,
+                Err(_) => {
+                    return fail_with_message(
+                        FfiErrorCode::NullPointer,
+                        "null source envelope bytes pointer",
+                    );
+                }
+            };
         if source_envelope_bytes.is_empty() {
             return fail_with_message(FfiErrorCode::InvalidLength, "empty source envelope bytes");
         }
 
-        let current_private_key = match unsafe { borrowed_bytes_as_slice(request.current_private_key) } {
-            Ok(bytes) => bytes,
-            Err(_) => {
-                return fail_with_message(FfiErrorCode::NullPointer, "null current private key bytes pointer")
-            }
-        };
+        let current_private_key =
+            match unsafe { borrowed_bytes_as_slice(request.current_private_key) } {
+                Ok(bytes) => bytes,
+                Err(_) => {
+                    return fail_with_message(
+                        FfiErrorCode::NullPointer,
+                        "null current private key bytes pointer",
+                    );
+                }
+            };
         if current_private_key.is_empty() {
-            return fail_with_message(FfiErrorCode::InvalidLength, "empty current private key bytes");
+            return fail_with_message(
+                FfiErrorCode::InvalidLength,
+                "empty current private key bytes",
+            );
         }
 
         let new_public_key = match unsafe { borrowed_bytes_as_slice(request.new_public_key) } {
             Ok(bytes) => bytes,
             Err(_) => {
-                return fail_with_message(FfiErrorCode::NullPointer, "null new public key bytes pointer")
+                return fail_with_message(
+                    FfiErrorCode::NullPointer,
+                    "null new public key bytes pointer",
+                );
             }
         };
         if new_public_key.is_empty() {
@@ -525,7 +619,11 @@ pub extern "C" fn crypto_ffi_create_additional_recipient_envelope(
             Ok(value) => value,
             Err(code) => return fail_with_message(code, "malformed KeyEnvelope JSON"),
         };
-        if !envelope_matches_owner(&source_envelope, request.current_owner_id, current_owner_type) {
+        if !envelope_matches_owner(
+            &source_envelope,
+            request.current_owner_id,
+            current_owner_type,
+        ) {
             return fail_with_message(
                 FfiErrorCode::InvalidArgument,
                 "envelope owner metadata mismatch",
@@ -541,7 +639,7 @@ pub extern "C" fn crypto_ffi_create_additional_recipient_envelope(
                 return fail_with_message(
                     FfiErrorCode::CryptoError,
                     "crypto operation failed while opening source envelope",
-                )
+                );
             }
         };
 
@@ -563,7 +661,7 @@ pub extern "C" fn crypto_ffi_create_additional_recipient_envelope(
                 return fail_with_message(
                     FfiErrorCode::CryptoError,
                     "crypto operation failed while creating additional recipient envelope",
-                )
+                );
             }
         };
 

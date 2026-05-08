@@ -51,6 +51,10 @@ impl KeyManagementService {
         Self { kem_backend }
     }
 
+    pub fn generate_keypair(&self) -> Result<(Vec<u8>, Vec<u8>), KeyManagementServiceError> {
+        Ok(self.kem_backend.generate_keypair()?)
+    }
+
     //사용자용 envelope를 생성
     pub fn create_user_key_envelope(
         &self,

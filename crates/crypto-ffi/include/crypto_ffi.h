@@ -102,6 +102,17 @@ FfiErrorCode crypto_ffi_generate_data_key(
     FfiByteBuffer* out_buffer
 );
 
+// Generates a new ML-KEM-1024 keypair.
+// The returned buffer contains UTF-8 JSON bytes:
+// {"algorithm":"ML-KEM-1024","public_key":[...],"private_key":[...]}
+// public_key and private_key are JSON arrays of byte values, matching the
+// existing KeyEnvelope JSON byte representation. Release the returned buffer
+// with crypto_ffi_byte_buffer_free.
+FfiErrorCode crypto_ffi_generate_mlkem_keypair(
+    FfiFacadeHandle* handle,
+    FfiByteBuffer* out_buffer
+);
+
 FfiErrorCode crypto_ffi_encrypt_package(
     FfiFacadeHandle* handle,
     const FfiEncryptPackageRequest* request,

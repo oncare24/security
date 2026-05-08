@@ -1,12 +1,12 @@
 use crypto_ffi::{
     FfiBorrowedBytes, FfiByteBuffer, FfiCreateAdditionalRecipientEnvelopeRequest,
     FfiCreateKeyEnvelopeRequest, FfiDataKeyInput, FfiDecryptPackageRequest,
-    FfiEncryptPackageRequest, FfiErrorCode, FfiOpenKeyEnvelopeRequest, FfiOwnerType,
-    FfiTimestamp, crypto_ffi_byte_buffer_free, crypto_ffi_create_additional_recipient_envelope,
+    FfiEncryptPackageRequest, FfiErrorCode, FfiOpenKeyEnvelopeRequest, FfiOwnerType, FfiTimestamp,
+    crypto_ffi_byte_buffer_free, crypto_ffi_create_additional_recipient_envelope,
     crypto_ffi_create_key_envelope, crypto_ffi_decrypt_package, crypto_ffi_encrypt_package,
     crypto_ffi_facade_free, crypto_ffi_facade_new_default, crypto_ffi_generate_data_key,
-    crypto_ffi_last_error_message_copy, crypto_ffi_last_error_message_length,
-    crypto_ffi_open_key_envelope,
+    crypto_ffi_generate_mlkem_keypair, crypto_ffi_last_error_message_copy,
+    crypto_ffi_last_error_message_length, crypto_ffi_open_key_envelope,
 };
 
 fn sample_bytes(value: &[u8]) -> FfiBorrowedBytes {
@@ -86,6 +86,39 @@ fn generate_data_key_returns_buffer() {
 }
 
 #[test]
+fn generate_mlkem_keypair_returns_json_buffer() {
+    let mut handle = std::ptr::null_mut();
+    assert_eq!(crypto_ffi_facade_new_default(&mut handle), FfiErrorCode::Ok);
+
+    let mut output = FfiByteBuffer::null();
+    let code = crypto_ffi_generate_mlkem_keypair(handle, &mut output);
+
+    assert_eq!(code, FfiErrorCode::Ok);
+    assert!(output.len > 0);
+    let json: serde_json::Value =
+        serde_json::from_slice(unsafe { buffer_as_slice(&output) }).expect("keypair JSON");
+    assert_eq!(json["algorithm"], "ML-KEM-1024");
+    assert!(
+        json["public_key"]
+            .as_array()
+            .expect("public_key array")
+            .len()
+            > 0
+    );
+    assert!(
+        json["private_key"]
+            .as_array()
+            .expect("private_key array")
+            .len()
+            > 0
+    );
+    assert_eq!(crypto_ffi_last_error_message_length(), 0);
+
+    assert_eq!(crypto_ffi_byte_buffer_free(output), FfiErrorCode::Ok);
+    assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
+}
+
+#[test]
 fn encrypt_and_decrypt_package_round_trip_succeeds() {
     let mut handle = std::ptr::null_mut();
     assert_eq!(crypto_ffi_facade_new_default(&mut handle), FfiErrorCode::Ok);
@@ -127,13 +160,20 @@ fn encrypt_and_decrypt_package_round_trip_succeeds() {
     };
     let mut decrypted_plaintext = FfiByteBuffer::null();
 
-    let decrypt_code = crypto_ffi_decrypt_package(handle, &decrypt_request, &mut decrypted_plaintext);
+    let decrypt_code =
+        crypto_ffi_decrypt_package(handle, &decrypt_request, &mut decrypted_plaintext);
     assert_eq!(decrypt_code, FfiErrorCode::Ok);
     assert_eq!(unsafe { buffer_as_slice(&decrypted_plaintext) }, plaintext);
     assert_eq!(crypto_ffi_last_error_message_length(), 0);
 
-    assert_eq!(crypto_ffi_byte_buffer_free(decrypted_plaintext), FfiErrorCode::Ok);
-    assert_eq!(crypto_ffi_byte_buffer_free(encrypted_package), FfiErrorCode::Ok);
+    assert_eq!(
+        crypto_ffi_byte_buffer_free(decrypted_plaintext),
+        FfiErrorCode::Ok
+    );
+    assert_eq!(
+        crypto_ffi_byte_buffer_free(encrypted_package),
+        FfiErrorCode::Ok
+    );
     assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
 }
 
@@ -176,8 +216,14 @@ fn create_and_open_key_envelope_round_trip_succeeds() {
     assert_eq!(unsafe { buffer_as_slice(&data_key_buffer) }, &key_value);
     assert_eq!(crypto_ffi_last_error_message_length(), 0);
 
-    assert_eq!(crypto_ffi_byte_buffer_free(data_key_buffer), FfiErrorCode::Ok);
-    assert_eq!(crypto_ffi_byte_buffer_free(envelope_buffer), FfiErrorCode::Ok);
+    assert_eq!(
+        crypto_ffi_byte_buffer_free(data_key_buffer),
+        FfiErrorCode::Ok
+    );
+    assert_eq!(
+        crypto_ffi_byte_buffer_free(envelope_buffer),
+        FfiErrorCode::Ok
+    );
     assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
 }
 
@@ -193,9 +239,8 @@ fn create_additional_recipient_envelope_and_open_with_new_recipient_succeeds() {
     let (source_public_key, source_private_key) = source_kem
         .generate_keypair()
         .expect("source keypair should work");
-    let (new_public_key, new_private_key) = new_kem
-        .generate_keypair()
-        .expect("new keypair should work");
+    let (new_public_key, new_private_key) =
+        new_kem.generate_keypair().expect("new keypair should work");
     let key_value = [11u8; 32];
     let create_request = FfiCreateKeyEnvelopeRequest {
         data_key: sample_data_key_input(b"ffi-share-key", key_value),
@@ -247,9 +292,18 @@ fn create_additional_recipient_envelope_and_open_with_new_recipient_succeeds() {
     assert_eq!(unsafe { buffer_as_slice(&data_key_buffer) }, &key_value);
     assert_eq!(crypto_ffi_last_error_message_length(), 0);
 
-    assert_eq!(crypto_ffi_byte_buffer_free(data_key_buffer), FfiErrorCode::Ok);
-    assert_eq!(crypto_ffi_byte_buffer_free(additional_envelope), FfiErrorCode::Ok);
-    assert_eq!(crypto_ffi_byte_buffer_free(source_envelope), FfiErrorCode::Ok);
+    assert_eq!(
+        crypto_ffi_byte_buffer_free(data_key_buffer),
+        FfiErrorCode::Ok
+    );
+    assert_eq!(
+        crypto_ffi_byte_buffer_free(additional_envelope),
+        FfiErrorCode::Ok
+    );
+    assert_eq!(
+        crypto_ffi_byte_buffer_free(source_envelope),
+        FfiErrorCode::Ok
+    );
     assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
 }
 
@@ -329,7 +383,8 @@ fn last_error_message_copy_validates_buffer_rules() {
     assert_eq!(null_copy_code, FfiErrorCode::NullPointer);
 
     let mut too_small = [0u8; 4];
-    let short_copy_code = crypto_ffi_last_error_message_copy(too_small.as_mut_ptr(), too_small.len());
+    let short_copy_code =
+        crypto_ffi_last_error_message_copy(too_small.as_mut_ptr(), too_small.len());
     assert_eq!(short_copy_code, FfiErrorCode::InvalidLength);
 
     assert_eq!(read_last_error_message(), "invalid handle");
@@ -460,5 +515,8 @@ fn decrypt_package_with_malformed_package_bytes_fails() {
 
 #[test]
 fn byte_buffer_free_accepts_null_buffer() {
-    assert_eq!(crypto_ffi_byte_buffer_free(FfiByteBuffer::null()), FfiErrorCode::Ok);
+    assert_eq!(
+        crypto_ffi_byte_buffer_free(FfiByteBuffer::null()),
+        FfiErrorCode::Ok
+    );
 }

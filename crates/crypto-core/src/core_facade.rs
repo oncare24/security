@@ -15,9 +15,7 @@ use crate::service::decryption_service::{
 use crate::service::encryption_service::{
     EncryptionRequest, EncryptionService, EncryptionServiceError,
 };
-use crate::service::key_management_service::{
-    KeyManagementService, KeyManagementServiceError,
-};
+use crate::service::key_management_service::{KeyManagementService, KeyManagementServiceError};
 use crate::service::sharing_service::{SharingService, SharingServiceError};
 
 //퍼사드 레벨의 상위 에러 enum
@@ -106,7 +104,7 @@ impl CoreFacade {
         let sharing_key_management_service =
             KeyManagementService::with_kem_backend(Arc::clone(&kem_backend));
 
-            //각 서비스를 직접 주입해 facade 구성
+        //각 서비스를 직접 주입해 facade 구성
         Self::with_components(
             EncryptionService::with_dependencies(
                 Arc::clone(&aead_backend),
@@ -147,6 +145,10 @@ impl CoreFacade {
         self.secure_random.fill_bytes(&mut key_value)?;
 
         Ok(DataKey::new(key_id, key_value, created_at, expires_at))
+    }
+
+    pub fn generate_mlkem_keypair(&self) -> Result<(Vec<u8>, Vec<u8>), CoreFacadeError> {
+        Ok(self.key_management_service.generate_keypair()?)
     }
 
     //주어진 EncryptionRequest와 DateKey로 암호화
@@ -192,9 +194,9 @@ impl CoreFacade {
         owner_type: OwnerType,
         public_key: &[u8],
     ) -> Result<KeyEnvelope, CoreFacadeError> {
-        Ok(self.key_management_service.create_key_envelope(
-            data_key, owner_id, owner_type, public_key,
-        )?)
+        Ok(self
+            .key_management_service
+            .create_key_envelope(data_key, owner_id, owner_type, public_key)?)
     }
 
     //KeyEnvelope와 private key를 받아 원래 data key를 복원

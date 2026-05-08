@@ -3,7 +3,11 @@ package example.cryptoffi;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.sun.jna.Memory;
 import com.sun.jna.Pointer;
@@ -26,11 +30,11 @@ final class CryptoFfiTestSupport implements AutoCloseable {
 
         Path cwd = Path.of("").toAbsolutePath().normalize();
         Path[] candidates = {
-                cwd.resolve("../../test/python_security/target/release/crypto_ffi.dll").normalize(),
-                cwd.resolve("../python_security/target/release/crypto_ffi.dll").normalize(),
                 cwd.resolve("../../target/release/crypto_ffi.dll").normalize(),
                 cwd.resolve("../../target/release/deps/crypto_ffi.dll").normalize(),
-                cwd.resolve("target/release/crypto_ffi.dll").normalize()
+                cwd.resolve("target/release/crypto_ffi.dll").normalize(),
+                cwd.resolve("../../test/python_security/target/release/crypto_ffi.dll").normalize(),
+                cwd.resolve("../python_security/target/release/crypto_ffi.dll").normalize()
         };
 
         for (Path candidate : candidates) {
@@ -67,6 +71,16 @@ final class CryptoFfiTestSupport implements AutoCloseable {
                 expiresAtUnixSeconds,
                 out
         ));
+    }
+
+    MlKemKeypair generateMlKemKeypair() {
+        byte[] jsonBytes = callBytes(out -> lib.crypto_ffi_generate_mlkem_keypair(requireHandle(), out));
+        String json = new String(jsonBytes, StandardCharsets.UTF_8);
+        return new MlKemKeypair(
+                readJsonStringField(json, "algorithm"),
+                readJsonByteArrayField(json, "public_key"),
+                readJsonByteArrayField(json, "private_key")
+        );
     }
 
     byte[] encryptPackage(
@@ -223,6 +237,44 @@ final class CryptoFfiTestSupport implements AutoCloseable {
         return absolute;
     }
 
+    private static String readJsonStringField(String json, String fieldName) {
+        Pattern pattern = Pattern.compile("\"" + Pattern.quote(fieldName) + "\"\\s*:\\s*\"([^\"]*)\"");
+        Matcher matcher = pattern.matcher(json);
+        if (!matcher.find()) {
+            throw new IllegalStateException("JSON field not found: " + fieldName);
+        }
+        return matcher.group(1);
+    }
+
+    private static byte[] readJsonByteArrayField(String json, String fieldName) {
+        Pattern pattern = Pattern.compile("\"" + Pattern.quote(fieldName) + "\"\\s*:\\s*\\[(.*?)\\]");
+        Matcher matcher = pattern.matcher(json);
+        if (!matcher.find()) {
+            throw new IllegalStateException("JSON byte array field not found: " + fieldName);
+        }
+
+        String body = matcher.group(1).trim();
+        if (body.isEmpty()) {
+            return new byte[0];
+        }
+
+        String[] parts = body.split("\\s*,\\s*");
+        List<Byte> bytes = new ArrayList<>(parts.length);
+        for (String part : parts) {
+            int value = Integer.parseInt(part);
+            if (value < 0 || value > 255) {
+                throw new IllegalStateException("JSON byte value is out of range: " + value);
+            }
+            bytes.add((byte) value);
+        }
+
+        byte[] result = new byte[bytes.size()];
+        for (int i = 0; i < bytes.size(); i++) {
+            result[i] = bytes.get(i);
+        }
+        return result;
+    }
+
     private static void check(CryptoFfiNative lib, int code) {
         if (code == CryptoFfiNative.FFI_ERROR_OK) {
             return;
@@ -263,5 +315,8 @@ final class CryptoFfiTestSupport implements AutoCloseable {
         int code() {
             return code;
         }
+    }
+
+    record MlKemKeypair(String algorithm, byte[] publicKey, byte[] privateKey) {
     }
 }

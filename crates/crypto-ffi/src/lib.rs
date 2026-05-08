@@ -15,7 +15,7 @@ pub mod types;
 pub use api::crypto::{
     crypto_ffi_byte_buffer_free, crypto_ffi_create_additional_recipient_envelope,
     crypto_ffi_create_key_envelope, crypto_ffi_decrypt_package, crypto_ffi_encrypt_package,
-    crypto_ffi_generate_data_key, crypto_ffi_open_key_envelope,
+    crypto_ffi_generate_data_key, crypto_ffi_generate_mlkem_keypair, crypto_ffi_open_key_envelope,
 };
 pub use api::facade::{crypto_ffi_facade_free, crypto_ffi_facade_new_default};
 pub use buffers::{FfiBorrowedBytes, FfiByteBuffer};
@@ -25,7 +25,7 @@ pub use error::{
 };
 pub use handle::{FfiFacadeHandle, FfiHandleInitError};
 pub use types::{
-    FfiCreateAdditionalRecipientEnvelopeRequest, FfiCreateKeyEnvelopeRequest,
-    FfiDataKeyInput, FfiDecryptPackageRequest, FfiEncryptPackageRequest,
-    FfiOpenKeyEnvelopeRequest, FfiOwnerType, FfiTimestamp,
+    FfiCreateAdditionalRecipientEnvelopeRequest, FfiCreateKeyEnvelopeRequest, FfiDataKeyInput,
+    FfiDecryptPackageRequest, FfiEncryptPackageRequest, FfiOpenKeyEnvelopeRequest, FfiOwnerType,
+    FfiTimestamp,
 };

@@ -98,11 +98,11 @@ public final class CryptoFfiSmokeTest {
 
         Path cwd = Path.of("").toAbsolutePath().normalize();
         Path[] candidates = {
-                cwd.resolve("../../test/python_security/target/release/crypto_ffi.dll").normalize(),
-                cwd.resolve("../python_security/target/release/crypto_ffi.dll").normalize(),
                 cwd.resolve("../../target/release/crypto_ffi.dll").normalize(),
                 cwd.resolve("../../target/release/deps/crypto_ffi.dll").normalize(),
-                cwd.resolve("target/release/crypto_ffi.dll").normalize()
+                cwd.resolve("target/release/crypto_ffi.dll").normalize(),
+                cwd.resolve("../../test/python_security/target/release/crypto_ffi.dll").normalize(),
+                cwd.resolve("../python_security/target/release/crypto_ffi.dll").normalize()
         };
 
         for (Path candidate : candidates) {

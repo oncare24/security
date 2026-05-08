@@ -49,6 +49,44 @@ final class CryptoFfiIntegrationTest {
     }
 
     @Test
+    void generateMlKemKeypairReturnsPublicAndPrivateKeys() {
+        try (CryptoFfiTestSupport ffi = CryptoFfiTestSupport.create()) {
+            CryptoFfiTestSupport.MlKemKeypair keypair = ffi.generateMlKemKeypair();
+
+            assertEquals("ML-KEM-1024", keypair.algorithm());
+            assertNotNull(keypair.publicKey());
+            assertNotNull(keypair.privateKey());
+            assertTrue(keypair.publicKey().length > 0);
+            assertTrue(keypair.privateKey().length > 0);
+        }
+    }
+
+    @Test
+    void generatedMlKemKeypairOpensCreatedKeyEnvelope() {
+        try (CryptoFfiTestSupport ffi = CryptoFfiTestSupport.create()) {
+            byte[] dataKey = ffi.generateDataKey("junit-datakey-generated-mlkem", CREATED_AT, EXPIRES_AT);
+            CryptoFfiTestSupport.MlKemKeypair keypair = ffi.generateMlKemKeypair();
+            byte[] envelope = ffi.createKeyEnvelope(
+                    "junit-datakey-generated-mlkem",
+                    dataKey,
+                    CREATED_AT,
+                    EXPIRES_AT,
+                    101L,
+                    CryptoFfiNative.FFI_OWNER_TYPE_USER,
+                    keypair.publicKey()
+            );
+            byte[] openedDataKey = ffi.openKeyEnvelope(
+                    envelope,
+                    101L,
+                    CryptoFfiNative.FFI_OWNER_TYPE_USER,
+                    keypair.privateKey()
+            );
+
+            assertArrayEquals(dataKey, openedDataKey);
+        }
+    }
+
+    @Test
     void encryptDecryptRoundTrip() {
         byte[] plaintext = "java jna roundtrip".getBytes(StandardCharsets.UTF_8);
 
