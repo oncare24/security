@@ -206,4 +206,5 @@ cap2/key-envelopes/{key_id}/guardian-{guardianId}
 `encrypted_data`는 `ciphertext`, `iv`, `tag`, `key_id`, `created_at_unix_seconds`를 포함하고, 각 envelope는 `kem_ciphertext`, `encapsulated_key`, `owner_id`, `owner_type`을 포함한다.
 
 `crypto_ffi_generate_mlkem_keypair`의 출력 JSON에는 `algorithm`, `public_key`, `private_key`가 포함된다.
+
 ---
