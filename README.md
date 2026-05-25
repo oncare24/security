@@ -40,15 +40,17 @@
 
 ## 2. 백엔드 서버 DB 및 OpenBao 저장 항목
 
-현재 백엔드 구조는 로그 분석에 사용되는 원천 이벤트 데이터를 암호화하여 저장하는 방식이다.
+현재 백엔드는 복약 일정, 복약 기록, 위치 보고, 디바이스 상태 변화처럼 분석의 입력이 되는 원천 이벤트를 `encrypted_activity_log` 테이블에 암호화된 패키지 형태로 저장한다.
 
-복약 일정, 복약 기록, 위치 보고, 디바이스 상태 변화처럼 분석의 입력이 되는 민감 데이터는 평문으로 DB에 남기지 않고, `encrypted_activity_log` 테이블에 암호화된 패키지 형태로 저장한다.
+복약 일정과 복약 기록은 민감한 상세값을 암호화 로그로 옮기고, 원본 도메인 테이블에는 연결 정보와 상태 관리용 메타데이터를 주로 남기는 구조이다.
 
-일반 DB에는 암호화된 패키지와 조회/검증용 메타데이터만 저장하고, Data Key 원문과 ML-KEM 개인키는 저장하지 않는다.
+위치 보고와 디바이스 상태도 `encrypted_activity_log`에 암호화 이벤트로 저장된다. 다만 현재 백엔드의 일부 기능 흐름에서는 `location_reports`, `device_status` 같은 원본 테이블에 위치 좌표, 정확도, 기기 상태, 마지막 보고 시각 등의 평문 운영 데이터도 함께 저장·사용한다.
+
+일반 DB에는 Data Key 원문과 ML-KEM 개인키를 저장하지 않는다. 복호화에 필요한 키 재료는 OpenBao/KMS에 분리하여 저장한다.
 
 ---
 
-### 암호화 로그 테이블
+### 2-1. 암호화 로그 테이블
 
 현재 백엔드에서 암호화된 원천 이벤트는 `encrypted_activity_log` 테이블에 저장된다.
 
@@ -60,7 +62,7 @@
 | `source_table` | 원천 데이터가 발생한 테이블명 | 조회 메타데이터 | 예: `medication_schedule`, `medication_log` |
 | `source_id` | 원천 데이터 ID | 조회 메타데이터 | 원본 도메인 데이터와 연결하기 위한 참조값 |
 | `occurred_at` | 이벤트 발생 시각 | 조회 메타데이터 | 원천 이벤트가 실제 발생한 시각 |
-| `encrypted_package` | 암호화된 원천 이벤트 패키지 | 암호화로 추가 | 평문 원천 데이터는 저장하지 않음 |
+| `encrypted_package` | 암호화된 원천 이벤트 패키지 | 암호화로 추가 | 이 컬럼에는 평문 원천 데이터가 아니라 암호화된 패키지를 저장 |
 | `aad_json` | 검증용 메타데이터 JSON | 암호화로 추가 | 복호화 후 metadata와 비교하여 위변조 여부 확인 |
 | `data_key_id` | 암호화에 사용한 Data Key 식별자 | 암호화로 추가 | Data Key 원문이 아니라 식별자만 저장 |
 | `created_at` | 저장 시각 | 공통 항목 | 공통 시간 필드 |
@@ -72,7 +74,7 @@
 
 ---
 
-### Key Envelope 저장 위치
+### 2-2. Key Envelope 저장 위치
 
 현재 백엔드는 Key Envelope를 일반 DB 테이블에 저장하지 않는다.  
 Key Envelope는 OpenBao/KMS에 저장한다.
@@ -84,6 +86,14 @@ cap2/key-envelopes/{key_id}/user-{userId}
 cap2/key-envelopes/{key_id}/guardian-{guardianId}
 ```
 
+---
+### 2-3. 데이터 암호화 매핑
+
+OnCare24 보안 모듈은 복약 일정, 복약 기록, 위치 보고, 기기 상태 데이터를 암호화된 패키지로 변환하고, 복호화에 필요한 키 재료는 OpenBao에 분리하여 저장한다.
+
+데이터별 암호화 전 입력값, 암호화 후 생성 데이터, DB 저장값, OpenBao 저장값 예시는 아래 문서에서 확인할 수 있다.
+
+- [데이터 암호화 매핑](./docs/data-encryption-mapping.md)
 ---
 
 ## 3. 보안 구조도
@@ -106,7 +116,7 @@ cap2/key-envelopes/{key_id}/guardian-{guardianId}
 9. 백엔드 서버가 OpenBao/KMS에서 Data Key 원문을 조회하거나 생성
 10. 백엔드 서버가 Data Key로 원천 이벤트 payload를 AES-256-GCM 암호화
 11. 암호화된 원천 이벤트는 encrypted_package 형태로 일반 DB에 저장
-12. 일반 DB에는 encrypted_package, data_key_id, aad_json, event_type, source_table, source_id, occurred_at 등 조회/검증용 메타데이터만 저장
+12. encrypted_activity_log에는 encrypted_package, data_key_id, aad_json, event_type, source_table, source_id, occurred_at 등 암호화 패키지와 조회/검증용 메타데이터를 저장
 13. 분석 실행 시 백엔드 서버가 일반 DB에서 암호화된 원천 이벤트를 조회하고 OpenBao/KMS에서 필요한 키 정보를 조회
 14. 백엔드 서버가 Rust FFI로 원천 이벤트를 복호화한 뒤 복약 분석 또는 비활동 분석 수행
 15. 분석 결과를 알림 또는 API 응답으로 사용자/보호자에게 반환
@@ -124,7 +134,9 @@ cap2/key-envelopes/{key_id}/guardian-{guardianId}
 
 ## 3-2. 보안 구조도 설명
 
-모바일 앱과 일반 DB에는 핵심 키와 평문 민감 데이터를 두지 않고, 백엔드에서 권한을 검증한 뒤 OpenBao/KMS와 연동하여 암호화·복호화·분석을 수행한다.
+모바일 앱과 일반 DB에는 핵심 키 원문을 두지 않고, 백엔드에서 권한을 검증한 뒤 OpenBao/KMS와 연동하여 암호화·복호화·분석을 수행한다.
+
+원천 이벤트는 `encrypted_activity_log`에 암호화된 패키지로 저장되며, 현재 백엔드 구현상 일부 도메인 테이블은 서비스 흐름을 위해 운영용 데이터를 함께 사용할 수 있다.
 
 전체 신뢰 구역은 다음과 같이 구분한다.
 
@@ -139,7 +151,9 @@ cap2/key-envelopes/{key_id}/guardian-{guardianId}
   - 원천 이벤트 데이터 암호화 저장
   - 필요 시 암호화된 원천 이벤트 복호화 후 분석
   - Rust FFI를 통한 AES-256-GCM 암호화 및 ML-KEM Key Envelope 생성
-  - 일반 DB에 평문 민감 데이터와 키 원문 저장 금지
+  - 일반 DB에 Data Key 원문과 ML-KEM 개인키 저장 금지
+  - 원천 이벤트는 `encrypted_activity_log`에 암호화된 패키지로 저장
+  - 일부 도메인 테이블은 현재 서비스 흐름을 위해 운영용 데이터를 함께 사용할 수 있음
 
 - OpenBao/KMS: 신뢰 구역
   - Data Key 원문 저장
