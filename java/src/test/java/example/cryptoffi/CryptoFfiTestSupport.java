@@ -17,11 +17,13 @@ final class CryptoFfiTestSupport implements AutoCloseable {
     private final CryptoFfiNative lib;
     private Pointer handle;
 
+    // CryptoFfiTestSupport 함수는 예외나 헬퍼 객체의 기본 상태를 초기화
     private CryptoFfiTestSupport(CryptoFfiNative lib, Pointer handle) {
         this.lib = lib;
         this.handle = handle;
     }
 
+    // resolveLibraryPath 함수는 사용할 경로나 설정 값을 찾아 확정
     static Path resolveLibraryPath() {
         String env = System.getenv("CRYPTO_FFI_LIBRARY");
         if (env != null && !env.isBlank()) {
@@ -47,10 +49,12 @@ final class CryptoFfiTestSupport implements AutoCloseable {
                 "crypto_ffi.dll not found. Set CRYPTO_FFI_LIBRARY or build the Rust cdylib first.");
     }
 
+    // loadLibrary 함수는 외부 리소스나 라이브러리를 읽어 사용할 수 있게 준비
     static CryptoFfiNative loadLibrary() {
         return CryptoFfiNative.load(resolveLibraryPath().toString());
     }
 
+    // create 함수는 요청 값을 바탕으로 새 결과 객체를 생성
     static CryptoFfiTestSupport create() {
         CryptoFfiNative lib = loadLibrary();
         PointerByReference outHandle = new PointerByReference();
@@ -187,6 +191,7 @@ final class CryptoFfiTestSupport implements AutoCloseable {
         return callBytes(out -> lib.crypto_ffi_create_additional_recipient_envelope(requireHandle(), request, out));
     }
 
+    // close 함수는 사용이 끝난 리소스를 정리
     @Override
     public void close() {
         if (handle == null) {
@@ -197,6 +202,7 @@ final class CryptoFfiTestSupport implements AutoCloseable {
         check(lib, lib.crypto_ffi_facade_free(handleToFree));
     }
 
+    // callBytes 함수는 네이티브 호출 결과 버퍼를 bytes로 복사하고 해제
     private byte[] callBytes(NativeBytesCall call) {
         CryptoFfiNative.FfiByteBuffer.ByReference out = new CryptoFfiNative.FfiByteBuffer.ByReference();
         check(lib, call.invoke(out));
@@ -208,6 +214,7 @@ final class CryptoFfiTestSupport implements AutoCloseable {
         }
     }
 
+    // requireHandle 함수는 닫히지 않은 네이티브 핸들을 확인해 반환
     private Pointer requireHandle() {
         if (handle == null) {
             throw new IllegalStateException("CryptoFfiTestSupport is already closed");
@@ -215,6 +222,7 @@ final class CryptoFfiTestSupport implements AutoCloseable {
         return handle;
     }
 
+    // dataKeyInput 함수는 외부 타입과 내부 타입 사이의 값을 변환
     private static CryptoFfiNative.FfiDataKeyInput dataKeyInput(
             CryptoFfiNative.BorrowedArg dataKeyIdArg,
             byte[] dataKey,
@@ -229,6 +237,7 @@ final class CryptoFfiTestSupport implements AutoCloseable {
         );
     }
 
+    // requireLibrary 함수는 입력값이나 호출 결과가 유효한지 확인
     private static Path requireLibrary(Path path) {
         Path absolute = path.toAbsolutePath().normalize();
         if (!Files.exists(absolute)) {
@@ -237,6 +246,7 @@ final class CryptoFfiTestSupport implements AutoCloseable {
         return absolute;
     }
 
+    // readJsonStringField 함수는 조건에 맞는 값을 조회해 반환
     private static String readJsonStringField(String json, String fieldName) {
         Pattern pattern = Pattern.compile("\"" + Pattern.quote(fieldName) + "\"\\s*:\\s*\"([^\"]*)\"");
         Matcher matcher = pattern.matcher(json);
@@ -246,6 +256,7 @@ final class CryptoFfiTestSupport implements AutoCloseable {
         return matcher.group(1);
     }
 
+    // readJsonByteArrayField 함수는 조건에 맞는 값을 조회해 반환
     private static byte[] readJsonByteArrayField(String json, String fieldName) {
         Pattern pattern = Pattern.compile("\"" + Pattern.quote(fieldName) + "\"\\s*:\\s*\\[(.*?)\\]");
         Matcher matcher = pattern.matcher(json);
@@ -275,6 +286,7 @@ final class CryptoFfiTestSupport implements AutoCloseable {
         return result;
     }
 
+    // check 함수는 입력값이나 호출 결과가 유효한지 확인
     private static void check(CryptoFfiNative lib, int code) {
         if (code == CryptoFfiNative.FFI_ERROR_OK) {
             return;
@@ -282,6 +294,7 @@ final class CryptoFfiTestSupport implements AutoCloseable {
         throw new CryptoFfiException(code, lastErrorMessage(lib));
     }
 
+    // lastErrorMessage 함수는 마지막 오류 정보를 읽거나 예외 객체로 변환
     private static String lastErrorMessage(CryptoFfiNative lib) {
         long len = lib.crypto_ffi_last_error_message_length().longValue();
         if (len <= 0) {
@@ -307,6 +320,7 @@ final class CryptoFfiTestSupport implements AutoCloseable {
     static final class CryptoFfiException extends RuntimeException {
         private final int code;
 
+        // CryptoFfiException 함수는 예외나 헬퍼 객체의 기본 상태를 초기화
         private CryptoFfiException(int code, String message) {
             super("crypto-ffi call failed: code=" + code + ", message=" + message);
             this.code = code;

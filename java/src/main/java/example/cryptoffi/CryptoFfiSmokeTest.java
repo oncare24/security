@@ -9,9 +9,11 @@ import com.sun.jna.Pointer;
 import com.sun.jna.ptr.PointerByReference;
 
 public final class CryptoFfiSmokeTest {
+    // CryptoFfiSmokeTest 함수는 예외나 헬퍼 객체의 기본 상태를 초기화
     private CryptoFfiSmokeTest() {
     }
 
+    // main 함수는 예제 실행 흐름을 시작
     public static void main(String[] args) {
         Path dllPath = resolveLibraryPath(args);
         CryptoFfiNative lib = CryptoFfiNative.load(dllPath.toString());
@@ -41,6 +43,7 @@ public final class CryptoFfiSmokeTest {
         }
     }
 
+    // createFacade 함수는 요청 값을 바탕으로 새 결과 객체를 생성
     private static Pointer createFacade(CryptoFfiNative lib) {
         PointerByReference outHandle = new PointerByReference();
         check(lib, lib.crypto_ffi_facade_new_default(outHandle));
@@ -51,6 +54,7 @@ public final class CryptoFfiSmokeTest {
         return handle;
     }
 
+    // callBytes 함수는 네이티브 호출 결과 버퍼를 bytes로 복사하고 해제
     private static byte[] callBytes(CryptoFfiNative lib, NativeBytesCall call) {
         CryptoFfiNative.FfiByteBuffer.ByReference out = new CryptoFfiNative.FfiByteBuffer.ByReference();
         check(lib, call.invoke(out));
@@ -62,6 +66,7 @@ public final class CryptoFfiSmokeTest {
         }
     }
 
+    // check 함수는 입력값이나 호출 결과가 유효한지 확인
     private static void check(CryptoFfiNative lib, int code) {
         if (code == CryptoFfiNative.FFI_ERROR_OK) {
             return;
@@ -69,6 +74,7 @@ public final class CryptoFfiSmokeTest {
         throw new CryptoFfiException(code, lastErrorMessage(lib));
     }
 
+    // lastErrorMessage 함수는 마지막 오류 정보를 읽거나 예외 객체로 변환
     private static String lastErrorMessage(CryptoFfiNative lib) {
         long len = lib.crypto_ffi_last_error_message_length().longValue();
         if (len <= 0) {
@@ -86,6 +92,7 @@ public final class CryptoFfiSmokeTest {
         return buffer.getString(0, "UTF-8");
     }
 
+    // resolveLibraryPath 함수는 사용할 경로나 설정 값을 찾아 확정
     private static Path resolveLibraryPath(String[] args) {
         if (args.length > 0 && !args[0].isBlank()) {
             return requireDll(Path.of(args[0]));
@@ -115,6 +122,7 @@ public final class CryptoFfiSmokeTest {
                 "crypto_ffi.dll not found. Pass the DLL path as the first argument or set CRYPTO_FFI_LIBRARY.");
     }
 
+    // requireDll 함수는 입력값이나 호출 결과가 유효한지 확인
     private static Path requireDll(Path path) {
         Path absolute = path.toAbsolutePath().normalize();
         if (!Files.exists(absolute)) {
@@ -129,6 +137,7 @@ public final class CryptoFfiSmokeTest {
     }
 
     private static final class CryptoFfiException extends RuntimeException {
+        // CryptoFfiException 함수는 예외나 헬퍼 객체의 기본 상태를 초기화
         private CryptoFfiException(int code, String message) {
             super("crypto-ffi call failed: code=" + code + ", message=" + message);
         }

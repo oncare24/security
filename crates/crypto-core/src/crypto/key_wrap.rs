@@ -12,6 +12,7 @@ pub enum KeyWrapError {
 }
 
 impl fmt::Display for KeyWrapError {
+    // fmt 함수는 값이나 에러를 사람이 읽기 쉬운 문자열로 포맷
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidWrappedKeyLength { expected, actual } => {

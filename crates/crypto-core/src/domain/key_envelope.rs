@@ -17,6 +17,7 @@ pub struct KeyEnvelope {
 }
 
 impl KeyEnvelope {
+    // new 함수는 필요한 값을 받아 새 인스턴스를 생성
     pub fn new(
         envelope_id: u64,
         key_id: impl Into<String>,

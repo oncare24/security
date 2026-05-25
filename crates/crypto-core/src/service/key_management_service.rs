@@ -19,6 +19,7 @@ pub enum KeyManagementServiceError {
 
 // ml-kem 처리 실패나 data key를 감싸고 푸는 과정 실패 에러
 impl fmt::Display for KeyManagementServiceError {
+    // fmt 함수는 값이나 에러를 사람이 읽기 쉬운 문자열로 포맷
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Kem(error) => write!(f, "{error}"),
@@ -30,12 +31,14 @@ impl fmt::Display for KeyManagementServiceError {
 impl Error for KeyManagementServiceError {}
 
 impl From<KemBackendError> for KeyManagementServiceError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: KemBackendError) -> Self {
         Self::Kem(value)
     }
 }
 
 impl From<KeyWrapError> for KeyManagementServiceError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: KeyWrapError) -> Self {
         Self::KeyWrap(value)
     }
@@ -51,6 +54,7 @@ impl KeyManagementService {
         Self { kem_backend }
     }
 
+    // generate_keypair 함수는 암호화에 사용할 새 키나 바이트 값을 생성
     pub fn generate_keypair(&self) -> Result<(Vec<u8>, Vec<u8>), KeyManagementServiceError> {
         Ok(self.kem_backend.generate_keypair()?)
     }
@@ -80,6 +84,7 @@ impl KeyManagementService {
         )
     }
 
+    // create_key_envelope 함수는 요청 값을 바탕으로 새 결과 객체를 생성
     pub fn create_key_envelope(
         &self,
         data_key: &DataKey,

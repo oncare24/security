@@ -17,6 +17,7 @@ from fixtures import (
 
 
 class CryptoFfiSmokeTests(unittest.TestCase):
+    # setUpClass 함수는 테스트 클래스에서 공유할 FFI facade를 준비
     @classmethod
     def setUpClass(cls) -> None:
         try:
@@ -24,15 +25,18 @@ class CryptoFfiSmokeTests(unittest.TestCase):
         except FileNotFoundError as error:
             raise unittest.SkipTest(str(error)) from error
 
+    # tearDownClass 함수는 테스트 클래스에서 사용한 FFI facade를 정리
     @classmethod
     def tearDownClass(cls) -> None:
         cls.facade.close()
 
+    # test_facade_create_close 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     def test_facade_create_close(self) -> None:
         facade = CryptoFacade()
         self.assertTrue(facade.library_path.exists())
         facade.close()
 
+    # test_encrypt_decrypt_round_trip 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     def test_encrypt_decrypt_round_trip(self) -> None:
         data_key = self.facade.generate_data_key(
             key_id="pytest-datakey-1",
@@ -58,6 +62,7 @@ class CryptoFfiSmokeTests(unittest.TestCase):
         )
         self.assertEqual(plaintext, b"python ffi roundtrip")
 
+    # test_envelope_round_trip 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     def test_envelope_round_trip(self) -> None:
         data_key = self.facade.generate_data_key(
             key_id="pytest-datakey-2",
@@ -81,6 +86,7 @@ class CryptoFfiSmokeTests(unittest.TestCase):
         )
         self.assertEqual(opened_data_key, data_key)
 
+    # test_additional_recipient_round_trip 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     def test_additional_recipient_round_trip(self) -> None:
         data_key = self.facade.generate_data_key(
             key_id="pytest-datakey-3",
@@ -113,6 +119,7 @@ class CryptoFfiSmokeTests(unittest.TestCase):
         )
         self.assertEqual(opened_data_key, data_key)
 
+    # test_python_exception_includes_last_error_message 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     def test_python_exception_includes_last_error_message(self) -> None:
         with self.assertRaises(CryptoFfiError) as context:
             self.facade.decrypt_package(

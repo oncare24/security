@@ -15,6 +15,7 @@ pub struct MLKEMService {
 pub type MLKEMServiceError = KemBackendError;
 
 impl fmt::Debug for MLKEMService {
+    // fmt 함수는 값이나 에러를 사람이 읽기 쉬운 문자열로 포맷
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("MLKEMService")
             .field("algorithm", &self.algorithm)
@@ -195,6 +196,7 @@ pub type MlKemService = MLKEMService;
 mod tests {
     use super::MLKEMService;
 
+    // encapsulate_and_decapsulate_data_key 함수는 공개키로 shared secret을 만들고 필요한 값을 감쌈
     #[test]
     fn encapsulate_and_decapsulate_data_key() {
         let service = MLKEMService::new().expect("service should initialize");
@@ -213,6 +215,7 @@ mod tests {
         assert_eq!(recovered, data_key);
     }
 
+    // invalid_private_key_is_rejected 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     #[test]
     fn invalid_private_key_is_rejected() {
         let service = MLKEMService::new().expect("service should initialize");

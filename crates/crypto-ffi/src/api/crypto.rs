@@ -147,6 +147,7 @@ pub extern "C" fn crypto_ffi_generate_mlkem_keypair(
     })
 }
 
+// crypto_ffi_generate_data_key 함수는 외부 타입과 내부 타입 사이의 값을 변환
 #[unsafe(no_mangle)]
 pub extern "C" fn crypto_ffi_generate_data_key(
     handle: *mut FfiFacadeHandle,
@@ -715,6 +716,7 @@ fn envelope_matches_owner(envelope: &KeyEnvelope, owner_id: u64, owner_type: Own
 
 // 도메인 객체와 Wire 객체간의 변환기
 impl<'a> From<&'a CryptoPackage> for CryptoPackageWire<'a> {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: &'a CryptoPackage) -> Self {
         Self {
             encrypted_data: EncryptedLogDataWire::from(&value.encrypted_data),
@@ -725,6 +727,7 @@ impl<'a> From<&'a CryptoPackage> for CryptoPackageWire<'a> {
 }
 
 impl<'a> From<&'a EncryptedLogData> for EncryptedLogDataWire<'a> {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: &'a EncryptedLogData) -> Self {
         let created_at_unix_seconds = value
             .created_at
@@ -745,6 +748,7 @@ impl<'a> From<&'a EncryptedLogData> for EncryptedLogDataWire<'a> {
 }
 
 impl<'a> From<&'a KeyEnvelope> for KeyEnvelopeWire<'a> {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: &'a KeyEnvelope) -> Self {
         Self {
             envelope_id: value.envelope_id,
@@ -763,6 +767,7 @@ impl<'a> From<&'a KeyEnvelope> for KeyEnvelopeWire<'a> {
 impl TryFrom<CryptoPackageWireOwned> for CryptoPackage {
     type Error = FfiErrorCode;
 
+    // try_from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn try_from(value: CryptoPackageWireOwned) -> Result<Self, Self::Error> {
         Ok(Self::new(
             EncryptedLogData::try_from(value.encrypted_data)?,
@@ -775,6 +780,7 @@ impl TryFrom<CryptoPackageWireOwned> for CryptoPackage {
 impl TryFrom<EncryptedLogDataWireOwned> for EncryptedLogData {
     type Error = FfiErrorCode;
 
+    // try_from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn try_from(value: EncryptedLogDataWireOwned) -> Result<Self, Self::Error> {
         Ok(Self::new(
             value.encrypted_log_id,
@@ -791,6 +797,7 @@ impl TryFrom<EncryptedLogDataWireOwned> for EncryptedLogData {
 impl TryFrom<KeyEnvelopeWireOwned> for KeyEnvelope {
     type Error = FfiErrorCode;
 
+    // try_from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn try_from(value: KeyEnvelopeWireOwned) -> Result<Self, Self::Error> {
         Ok(Self::new(
             value.envelope_id,

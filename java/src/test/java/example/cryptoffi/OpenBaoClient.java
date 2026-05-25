@@ -28,6 +28,7 @@ final class OpenBaoClient {
         this.kvMount = normalizePathPart(kvMount);
     }
 
+    // fromEnvironment 함수는 외부 타입과 내부 타입 사이의 값을 변환
     static Optional<OpenBaoClient> fromEnvironment() {
         String address = System.getenv("BAO_ADDR");
         String token = System.getenv("BAO_TOKEN");
@@ -85,6 +86,7 @@ final class OpenBaoClient {
         return kvMount + "/data/" + dataKeyPath(keyId);
     }
 
+    // requestBuilder 함수는 OpenBao 요청에 공통 헤더와 URI를 설정
     private HttpRequest.Builder requestBuilder(URI uri) {
         return HttpRequest.newBuilder(uri)
                 .timeout(Duration.ofSeconds(10))
@@ -93,14 +95,17 @@ final class OpenBaoClient {
                 .header("Accept", "application/json");
     }
 
+    // dataKeyUri 함수는 요청에 사용할 경로나 URI 값을 구성
     private URI dataKeyUri(String keyId) {
         return address.resolve("/v1/" + kvMount + "/data/" + dataKeyPath(keyId));
     }
 
+    // dataKeyPath 함수는 요청에 사용할 경로나 URI 값을 구성
     private static String dataKeyPath(String keyId) {
         return "cap2/data-keys/" + encodePathSegment(keyId);
     }
 
+    // send 함수는 HTTP 요청을 보내고 응답을 반환
     private HttpResponse<String> send(HttpRequest request) {
         try {
             return httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
@@ -112,6 +117,7 @@ final class OpenBaoClient {
         }
     }
 
+    // requireStatus 함수는 입력값이나 호출 결과가 유효한지 확인
     private static void requireStatus(HttpResponse<String> response, int... expectedStatuses) {
         for (int expectedStatus : expectedStatuses) {
             if (response.statusCode() == expectedStatus) {
@@ -121,6 +127,7 @@ final class OpenBaoClient {
         throw new OpenBaoException("OpenBao returned HTTP " + response.statusCode() + ": " + response.body());
     }
 
+    // parseStoredDataKey 함수는 직렬화된 입력을 내부 객체로 변환
     private static StoredDataKey parseStoredDataKey(String body) {
         String keyId = readJsonString(body, "key_id");
         byte[] keyValue = Base64.getDecoder().decode(readJsonString(body, "data_key_b64"));
@@ -136,6 +143,7 @@ final class OpenBaoClient {
         );
     }
 
+    // readJsonString 함수는 조건에 맞는 값을 조회해 반환
     private static String readJsonString(String body, String fieldName) {
         Matcher matcher = Pattern.compile("\"" + Pattern.quote(fieldName) + "\"\\s*:\\s*\"((?:\\\\.|[^\"])*)\"")
                 .matcher(body);
@@ -145,6 +153,7 @@ final class OpenBaoClient {
         return unescapeJsonString(matcher.group(1));
     }
 
+    // readJsonLong 함수는 조건에 맞는 값을 조회해 반환
     private static long readJsonLong(String body, String fieldName) {
         Matcher matcher = Pattern.compile("\"" + Pattern.quote(fieldName) + "\"\\s*:\\s*(-?\\d+)")
                 .matcher(body);
@@ -154,18 +163,22 @@ final class OpenBaoClient {
         return Long.parseLong(matcher.group(1));
     }
 
+    // jsonString 함수는 JSON 문자열에서 필요한 값을 읽거나 구성
     private static String jsonString(String value) {
         return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
+    // unescapeJsonString 함수는 JSON 문자열에서 필요한 값을 읽거나 구성
     private static String unescapeJsonString(String value) {
         return value.replace("\\\"", "\"").replace("\\\\", "\\");
     }
 
+    // encodePathSegment 함수는 요청에 사용할 경로나 URI 값을 구성
     private static String encodePathSegment(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
+    // normalizePathPart 함수는 요청에 사용할 경로나 URI 값을 구성
     private static String normalizePathPart(String value) {
         String normalized = value.strip();
         while (normalized.startsWith("/")) {
@@ -177,6 +190,7 @@ final class OpenBaoClient {
         return normalized;
     }
 
+    // stripTrailingSlash 함수는 경로 끝의 슬래시를 제거해 기준 URL을 정리
     private static String stripTrailingSlash(String value) {
         String stripped = value.strip();
         while (stripped.endsWith("/")) {
@@ -189,10 +203,12 @@ final class OpenBaoClient {
     }
 
     static final class OpenBaoException extends RuntimeException {
+        // OpenBaoException 함수는 예외나 헬퍼 객체의 기본 상태를 초기화
         private OpenBaoException(String message) {
             super(message);
         }
 
+        // OpenBaoException 함수는 예외나 헬퍼 객체의 기본 상태를 초기화
         private OpenBaoException(String message, Throwable cause) {
             super(message, cause);
         }

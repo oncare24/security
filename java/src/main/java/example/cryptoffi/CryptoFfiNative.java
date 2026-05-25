@@ -18,6 +18,7 @@ interface CryptoFfiNative extends Library {
     int FFI_OWNER_TYPE_USER = 1;
     int FFI_OWNER_TYPE_GUARDIAN = 2;
 
+    // load 함수는 외부 리소스나 라이브러리를 읽어 사용할 수 있게 준비
     static CryptoFfiNative load(String libraryPath) {
         return Native.load(libraryPath, CryptoFfiNative.class, Map.of(
                 Library.OPTION_STRING_ENCODING, StandardCharsets.UTF_8.name()
@@ -78,10 +79,12 @@ interface CryptoFfiNative extends Library {
     int crypto_ffi_last_error_message_copy(Pointer buffer, SizeT bufferLen);
 
     final class SizeT extends IntegerType {
+        // SizeT 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public SizeT() {
             this(0);
         }
 
+        // SizeT 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public SizeT(long value) {
             super(Native.SIZE_T_SIZE, value, true);
         }
@@ -91,24 +94,29 @@ interface CryptoFfiNative extends Library {
         public Pointer ptr;
         public SizeT len;
 
+        // FfiBorrowedBytes 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public FfiBorrowedBytes() {
             this(Pointer.NULL, 0);
         }
 
+        // FfiBorrowedBytes 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public FfiBorrowedBytes(Pointer ptr, long len) {
             this.ptr = ptr;
             this.len = new SizeT(len);
         }
 
+        // getFieldOrder 함수는 JNA 구조체 필드 순서를 네이티브 ABI와 맞춰 반환
         @Override
         protected List<String> getFieldOrder() {
             return List.of("ptr", "len");
         }
 
         public static class ByValue extends FfiBorrowedBytes implements Structure.ByValue {
+            // ByValue 함수는 현재 버퍼 상태를 값 전달용 구조체로 복사
             public ByValue() {
             }
 
+            // ByValue 함수는 현재 버퍼 상태를 값 전달용 구조체로 복사
             public ByValue(Pointer ptr, long len) {
                 super(ptr, len);
             }
@@ -120,12 +128,14 @@ interface CryptoFfiNative extends Library {
         public SizeT len;
         public SizeT capacity;
 
+        // FfiByteBuffer 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public FfiByteBuffer() {
             this.ptr = Pointer.NULL;
             this.len = new SizeT(0);
             this.capacity = new SizeT(0);
         }
 
+        // getFieldOrder 함수는 JNA 구조체 필드 순서를 네이티브 ABI와 맞춰 반환
         @Override
         protected List<String> getFieldOrder() {
             return List.of("ptr", "len", "capacity");
@@ -161,13 +171,16 @@ interface CryptoFfiNative extends Library {
     class FfiTimestamp extends Structure {
         public long unix_seconds;
 
+        // FfiTimestamp 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public FfiTimestamp() {
         }
 
+        // FfiTimestamp 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public FfiTimestamp(long unixSeconds) {
             this.unix_seconds = unixSeconds;
         }
 
+        // getFieldOrder 함수는 JNA 구조체 필드 순서를 네이티브 ABI와 맞춰 반환
         @Override
         protected List<String> getFieldOrder() {
             return List.of("unix_seconds");
@@ -180,12 +193,14 @@ interface CryptoFfiNative extends Library {
         public FfiTimestamp created_at;
         public FfiTimestamp expires_at;
 
+        // FfiDataKeyInput 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public FfiDataKeyInput() {
             this.key_id = new FfiBorrowedBytes();
             this.created_at = new FfiTimestamp();
             this.expires_at = new FfiTimestamp();
         }
 
+        // FfiDataKeyInput 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public FfiDataKeyInput(FfiBorrowedBytes keyId, byte[] keyValue, long createdAt, long expiresAt) {
             if (keyValue.length != 32) {
                 throw new IllegalArgumentException("key_value must be exactly 32 bytes, got " + keyValue.length);
@@ -196,6 +211,7 @@ interface CryptoFfiNative extends Library {
             this.expires_at = new FfiTimestamp(expiresAt);
         }
 
+        // getFieldOrder 함수는 JNA 구조체 필드 순서를 네이티브 ABI와 맞춰 반환
         @Override
         protected List<String> getFieldOrder() {
             return List.of("key_id", "key_value", "created_at", "expires_at");
@@ -210,6 +226,7 @@ interface CryptoFfiNative extends Library {
         public FfiBorrowedBytes guardian_public_key;
         public FfiDataKeyInput data_key;
 
+        // FfiEncryptPackageRequest 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public FfiEncryptPackageRequest() {
             this.plaintext = new FfiBorrowedBytes();
             this.user_public_key = new FfiBorrowedBytes();
@@ -217,6 +234,7 @@ interface CryptoFfiNative extends Library {
             this.data_key = new FfiDataKeyInput();
         }
 
+        // getFieldOrder 함수는 JNA 구조체 필드 순서를 네이티브 ABI와 맞춰 반환
         @Override
         protected List<String> getFieldOrder() {
             return List.of("plaintext", "user_id", "user_public_key", "guardian_id", "guardian_public_key", "data_key");
@@ -232,11 +250,13 @@ interface CryptoFfiNative extends Library {
         public int caller_type;
         public FfiBorrowedBytes private_key;
 
+        // FfiDecryptPackageRequest 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public FfiDecryptPackageRequest() {
             this.package_ = new FfiBorrowedBytes();
             this.private_key = new FfiBorrowedBytes();
         }
 
+        // getFieldOrder 함수는 JNA 구조체 필드 순서를 네이티브 ABI와 맞춰 반환
         @Override
         protected List<String> getFieldOrder() {
             return List.of("package_", "caller_id", "caller_type", "private_key");
@@ -252,11 +272,13 @@ interface CryptoFfiNative extends Library {
         public int owner_type;
         public FfiBorrowedBytes public_key;
 
+        // FfiCreateKeyEnvelopeRequest 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public FfiCreateKeyEnvelopeRequest() {
             this.data_key = new FfiDataKeyInput();
             this.public_key = new FfiBorrowedBytes();
         }
 
+        // getFieldOrder 함수는 JNA 구조체 필드 순서를 네이티브 ABI와 맞춰 반환
         @Override
         protected List<String> getFieldOrder() {
             return List.of("data_key", "owner_id", "owner_type", "public_key");
@@ -272,11 +294,13 @@ interface CryptoFfiNative extends Library {
         public int caller_type;
         public FfiBorrowedBytes private_key;
 
+        // FfiOpenKeyEnvelopeRequest 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public FfiOpenKeyEnvelopeRequest() {
             this.envelope = new FfiBorrowedBytes();
             this.private_key = new FfiBorrowedBytes();
         }
 
+        // getFieldOrder 함수는 JNA 구조체 필드 순서를 네이티브 ABI와 맞춰 반환
         @Override
         protected List<String> getFieldOrder() {
             return List.of("envelope", "caller_id", "caller_type", "private_key");
@@ -295,12 +319,14 @@ interface CryptoFfiNative extends Library {
         public int new_owner_type;
         public FfiBorrowedBytes new_public_key;
 
+        // FfiCreateAdditionalRecipientEnvelopeRequest 함수는 FFI 호출에 맞는 구조체 값을 초기화
         public FfiCreateAdditionalRecipientEnvelopeRequest() {
             this.source_envelope = new FfiBorrowedBytes();
             this.current_private_key = new FfiBorrowedBytes();
             this.new_public_key = new FfiBorrowedBytes();
         }
 
+        // getFieldOrder 함수는 JNA 구조체 필드 순서를 네이티브 ABI와 맞춰 반환
         @Override
         protected List<String> getFieldOrder() {
             return List.of(
@@ -323,6 +349,7 @@ interface CryptoFfiNative extends Library {
         private final FfiBorrowedBytes bytes;
         private final FfiBorrowedBytes.ByValue byValue;
 
+        // BorrowedArg 함수는 FFI 호출에 맞는 구조체 값을 초기화
         private BorrowedArg(byte[] data) {
             if (data.length == 0) {
                 this.memory = null;
@@ -336,10 +363,12 @@ interface CryptoFfiNative extends Library {
             this.byValue = new FfiBorrowedBytes.ByValue(memory, data.length);
         }
 
+        // of 함수는 Java 값을 FFI에 넘길 borrowed bytes 형태로 준비
         static BorrowedArg of(byte[] data) {
             return new BorrowedArg(Arrays.copyOf(data, data.length));
         }
 
+        // utf8 함수는 Java 값을 FFI에 넘길 borrowed bytes 형태로 준비
         static BorrowedArg utf8(String value) {
             return new BorrowedArg(value.getBytes(StandardCharsets.UTF_8));
         }

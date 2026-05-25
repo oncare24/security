@@ -12,6 +12,7 @@ use crypto_core::service::encryption_service::{EncryptionRequest, EncryptionServ
 use crypto_core::service::key_management_service::KeyManagementService;
 use crypto_core::service::sharing_service::SharingService;
 
+// build_encryption_request 함수는 필요한 의존성을 조립해 사용할 객체를 만듦
 fn build_encryption_request(
     user_public_key: Vec<u8>,
     guardian_public_key: Vec<u8>,
@@ -20,6 +21,7 @@ fn build_encryption_request(
     EncryptionRequest::new(plaintext, 10, user_public_key, 20, guardian_public_key)
 }
 
+// build_core_facade 함수는 필요한 의존성을 조립해 사용할 객체를 만듦
 fn build_core_facade() -> CoreFacade {
     CoreFacade::from_backends(
         Arc::new(AESGCMCrypto),
@@ -28,6 +30,7 @@ fn build_core_facade() -> CoreFacade {
     )
 }
 
+// encryption_service_encrypts_with_supplied_data_key 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn encryption_service_encrypts_with_supplied_data_key() {
     let kem_backend: Arc<dyn crypto_core::crypto::backends::KemBackend> = Arc::new(MLKEMService::new().expect("ml-kem should initialize"));
@@ -66,6 +69,7 @@ fn encryption_service_encrypts_with_supplied_data_key() {
     assert_eq!(package.guardian_envelope.key_id, "datakey-explicit");
 }
 
+// decryption_service_decrypts_user_encrypted_log_end_to_end 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn decryption_service_decrypts_user_encrypted_log_end_to_end() {
     let kem_backend: Arc<dyn crypto_core::crypto::backends::KemBackend> = Arc::new(MLKEMService::new().expect("ml-kem should initialize"));
@@ -112,6 +116,7 @@ fn decryption_service_decrypts_user_encrypted_log_end_to_end() {
     assert_eq!(decrypted, plaintext);
 }
 
+// key_management_service_creates_and_opens_envelope 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn key_management_service_creates_and_opens_envelope() {
     let service = KeyManagementService::with_kem_backend(Arc::new(
@@ -138,6 +143,7 @@ fn key_management_service_creates_and_opens_envelope() {
     assert_eq!(opened, data_key.key_value);
 }
 
+// sharing_service_creates_additional_recipient_envelope 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn sharing_service_creates_additional_recipient_envelope() {
     let key_management_service = KeyManagementService::with_kem_backend(Arc::new(
@@ -172,6 +178,7 @@ fn sharing_service_creates_additional_recipient_envelope() {
     assert_eq!(recovered, data_key.key_value);
 }
 
+// core_facade_encrypts_and_decrypts_package 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn core_facade_encrypts_and_decrypts_package() {
     let facade = build_core_facade();
@@ -207,6 +214,7 @@ fn core_facade_encrypts_and_decrypts_package() {
     assert_eq!(package.encrypted_data.key_id, data_key.key_id);
 }
 
+// core_facade_creates_and_opens_key_envelope 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn core_facade_creates_and_opens_key_envelope() {
     let facade = build_core_facade();
@@ -230,6 +238,7 @@ fn core_facade_creates_and_opens_key_envelope() {
     assert_eq!(envelope.key_id, data_key.key_id);
 }
 
+// core_facade_creates_additional_recipient_envelope 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn core_facade_creates_additional_recipient_envelope() {
     let facade = build_core_facade();

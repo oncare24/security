@@ -7,10 +7,13 @@ use crate::repository::RepositoryError;
 
 // key envelope를 저장하기 위한 trait
 pub trait KeyEnvelopeRepository {
+    // store_key_envelope 함수는 전달받은 값을 저장소에 보관
     fn store_key_envelope(&self, envelope: &KeyEnvelope) -> Result<(), RepositoryError>;
 
+    // get_envelopes_by_key_id 함수는 조건에 맞는 값을 조회해 반환
     fn get_envelopes_by_key_id(&self, key_id: &str) -> Result<Vec<KeyEnvelope>, RepositoryError>;
 
+    // get_envelopes_by_owner_id 함수는 조건에 맞는 값을 조회해 반환
     fn get_envelopes_by_owner_id(&self, owner_id: u64) -> Result<Vec<KeyEnvelope>, RepositoryError>;
 }
 
@@ -65,6 +68,7 @@ mod tests {
 
     use super::*;
 
+    // sample_envelope 함수는 테스트에서 사용할 샘플 값을 만듦
     fn sample_envelope(envelope_id: u64, key_id: &str, owner_id: u64) -> KeyEnvelope {
         KeyEnvelope::new(
             envelope_id,
@@ -76,6 +80,7 @@ mod tests {
         )
     }
 
+    // retrieves_envelopes_by_key_id_and_owner_id 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     #[test]
     fn retrieves_envelopes_by_key_id_and_owner_id() {
         let repository = InMemoryKeyEnvelopeRepository::default();

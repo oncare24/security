@@ -12,6 +12,7 @@ pub struct CryptoPackage {
 }
 
 impl CryptoPackage {
+    // new 함수는 필요한 값을 받아 새 인스턴스를 생성
     pub fn new(
         encrypted_data: EncryptedLogData,
         user_envelope: KeyEnvelope,

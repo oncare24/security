@@ -9,13 +9,17 @@ use crate::repository::RepositoryError;
 
 //data key를 저장하고 조회하기 위한 trait
 pub trait DataKeyRepository {
+    // store_data_key 함수는 전달받은 값을 저장소에 보관
     fn store_data_key(&self, data_key: &DataKey) -> Result<(), RepositoryError>;
+    // get_data_key_by_id 함수는 조건에 맞는 값을 조회해 반환
     fn get_data_key_by_id(&self, key_id: &str) -> Result<Option<DataKey>, RepositoryError>;
+    // get_todays_data_key 함수는 조건에 맞는 값을 조회해 반환
     fn get_todays_data_key(&self) -> Result<Option<DataKey>, RepositoryError>;
 }
 
 // 사용자와 보호자의 공개키를 저장하고 조회하기 위한 trait
 pub trait KeyRepository {
+    // store_public_key 함수는 전달받은 값을 저장소에 보관
     fn store_public_key(
         &self,
         owner_id: u64,
@@ -23,6 +27,7 @@ pub trait KeyRepository {
         public_key: Vec<u8>,
     ) -> Result<(), RepositoryError>;
 
+    // get_public_key 함수는 조건에 맞는 값을 조회해 반환
     fn get_public_key(
         &self,
         owner_id: u64,
@@ -132,6 +137,7 @@ mod tests {
 
     use super::*;
 
+    // stores_and_retrieves_data_key_by_id 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     #[test]
     fn stores_and_retrieves_data_key_by_id() {
         let repository = InMemoryDataKeyRepository::default();
@@ -154,6 +160,7 @@ mod tests {
         assert_eq!(retrieved.key_value, [9u8; 32]);
     }
 
+    // retrieves_todays_data_key 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     #[test]
     fn retrieves_todays_data_key() {
         let repository = InMemoryDataKeyRepository::default();
@@ -177,6 +184,7 @@ mod tests {
         assert_eq!(retrieved.key_value, [3u8; 32]);
     }
 
+    // stores_and_retrieves_public_key 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     #[test]
     fn stores_and_retrieves_public_key() {
         let repository = InMemoryKeyRepository::default();

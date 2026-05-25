@@ -58,6 +58,7 @@ impl AESGCMCrypto {
         Self::decrypt_ref(&encrypted, key)
     }
 
+    // decrypt_ref 함수는 암호문과 키 정보를 사용해 원문을 복원
     pub fn decrypt_ref(
         encrypted: &EncryptedLogData,
         key: &[u8; 32],
@@ -96,6 +97,7 @@ impl AeadBackend for AESGCMCrypto {
         Ok(AeadEncrypted::new(ciphertext, tag_bytes))
     }
 
+    // decrypt_detached 함수는 암호문과 키 정보를 사용해 원문을 복원
     fn decrypt_detached(
         &self,
         key: &[u8; DATA_KEY_SIZE],
@@ -122,6 +124,7 @@ impl AeadBackend for AESGCMCrypto {
 mod tests {
     use super::AESGCMCrypto;
 
+    // encrypt_and_decrypt_round_trip 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     #[test]
     fn encrypt_and_decrypt_round_trip() {
         let key = [7u8; 32];
@@ -133,6 +136,7 @@ mod tests {
         assert_eq!(decrypted, plaintext);
     }
 
+    // tampered_tag_fails_validation 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     #[test]
     fn tampered_tag_fails_validation() {
         let key = [9u8; 32];

@@ -20,6 +20,7 @@ pub enum ProviderBackedEncryptionServiceError {
 }
 
 impl fmt::Display for ProviderBackedEncryptionServiceError {
+    // fmt 함수는 값이나 에러를 사람이 읽기 쉬운 문자열로 포맷
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::DataKey(error) => write!(f, "{error}"),
@@ -32,12 +33,14 @@ impl Error for ProviderBackedEncryptionServiceError {}
 
 //자동으로 변환 해줌
 impl From<DataKeyServiceError> for ProviderBackedEncryptionServiceError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: DataKeyServiceError) -> Self {
         Self::DataKey(value)
     }
 }
 
 impl From<EncryptionServiceError> for ProviderBackedEncryptionServiceError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: EncryptionServiceError) -> Self {
         Self::Encryption(value)
     }
@@ -104,6 +107,7 @@ mod tests {
 
     use super::*;
 
+    // build_service 함수는 필요한 의존성을 조립해 사용할 객체를 만듦
     fn build_service() -> ProviderBackedEncryptionService {
         let repository = InMemoryDataKeyRepository::default();
         let data_key_service = DataKeyService::new(repository);
@@ -113,6 +117,7 @@ mod tests {
         ProviderBackedEncryptionService::new(encryption_service, data_key_service)
     }
 
+    // build_request 함수는 필요한 의존성을 조립해 사용할 객체를 만듦
     fn build_request() -> EncryptionRequest {
         let ml_kem_service = MLKEMService::new().expect("ml-kem service should initialize");
         let (user_public_key, _) = ml_kem_service
@@ -131,6 +136,7 @@ mod tests {
         )
     }
 
+    // reuses_daily_key_for_same_day_encryptions 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     #[test]
     fn reuses_daily_key_for_same_day_encryptions() {
         let service = build_service();

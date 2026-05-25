@@ -27,6 +27,7 @@ pub struct EncryptionRequest {
 }
 
 impl EncryptionRequest {
+    // new 함수는 필요한 값을 받아 새 인스턴스를 생성
     pub fn new(
         log_data: impl Into<Vec<u8>>,
         user_id: u64,
@@ -52,6 +53,7 @@ pub enum EncryptionServiceError {
 }
 
 impl fmt::Display for EncryptionServiceError {
+    // fmt 함수는 값이나 에러를 사람이 읽기 쉬운 문자열로 포맷
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Aead(error) => write!(f, "{error}"),
@@ -64,18 +66,21 @@ impl fmt::Display for EncryptionServiceError {
 impl Error for EncryptionServiceError {}
 
 impl From<AeadBackendError> for EncryptionServiceError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: AeadBackendError) -> Self {
         Self::Aead(value)
     }
 }
 
 impl From<SecureRandomError> for EncryptionServiceError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: SecureRandomError) -> Self {
         Self::Random(value)
     }
 }
 
 impl From<KeyManagementServiceError> for EncryptionServiceError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: KeyManagementServiceError) -> Self {
         Self::KeyManagement(value)
     }
@@ -111,6 +116,7 @@ impl EncryptionService {
     }
 
 
+    // encrypt_log_with_data_key_at 함수는 평문과 키 정보를 사용해 암호화 결과를 만듦
     pub fn encrypt_log_with_data_key_at(
         &self,
         request: EncryptionRequest,

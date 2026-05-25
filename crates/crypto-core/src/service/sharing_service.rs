@@ -14,6 +14,7 @@ pub enum SharingServiceError {
 }
 
 impl fmt::Display for SharingServiceError {
+    // fmt 함수는 값이나 에러를 사람이 읽기 쉬운 문자열로 포맷
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::KeyManagement(error) => write!(f, "{error}"),
@@ -24,6 +25,7 @@ impl fmt::Display for SharingServiceError {
 impl Error for SharingServiceError {}
 
 impl From<KeyManagementServiceError> for SharingServiceError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: KeyManagementServiceError) -> Self {
         Self::KeyManagement(value)
     }

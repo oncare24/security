@@ -9,6 +9,7 @@ use crypto_ffi::{
     crypto_ffi_last_error_message_length, crypto_ffi_open_key_envelope,
 };
 
+// sample_bytes 함수는 테스트에서 사용할 샘플 값을 만듦
 fn sample_bytes(value: &[u8]) -> FfiBorrowedBytes {
     FfiBorrowedBytes {
         ptr: value.as_ptr(),
@@ -16,6 +17,7 @@ fn sample_bytes(value: &[u8]) -> FfiBorrowedBytes {
     }
 }
 
+// sample_data_key_input 함수는 테스트에서 사용할 샘플 값을 만듦
 fn sample_data_key_input<'a>(key_id: &'a [u8], key_value: [u8; 32]) -> FfiDataKeyInput {
     FfiDataKeyInput {
         key_id: sample_bytes(key_id),
@@ -29,6 +31,7 @@ fn sample_data_key_input<'a>(key_id: &'a [u8], key_value: [u8; 32]) -> FfiDataKe
     }
 }
 
+// buffer_as_slice 함수는 바이트 버퍼를 호출자가 사용할 형태로 변환
 unsafe fn buffer_as_slice<'a>(buffer: &'a FfiByteBuffer) -> &'a [u8] {
     if buffer.ptr.is_null() || buffer.len == 0 {
         return &[];
@@ -37,6 +40,7 @@ unsafe fn buffer_as_slice<'a>(buffer: &'a FfiByteBuffer) -> &'a [u8] {
     unsafe { std::slice::from_raw_parts(buffer.ptr, buffer.len) }
 }
 
+// read_last_error_message 함수는 조건에 맞는 값을 조회해 반환
 fn read_last_error_message() -> String {
     let length = crypto_ffi_last_error_message_length();
     if length == 0 {
@@ -50,6 +54,7 @@ fn read_last_error_message() -> String {
     String::from_utf8(buffer[..length].to_vec()).expect("last error should be valid UTF-8")
 }
 
+// creates_and_frees_facade_handle 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn creates_and_frees_facade_handle() {
     let mut handle = std::ptr::null_mut();
@@ -62,6 +67,7 @@ fn creates_and_frees_facade_handle() {
     assert_eq!(free_code, FfiErrorCode::Ok);
 }
 
+// generate_data_key_returns_buffer 함수는 암호화에 사용할 새 키나 바이트 값을 생성
 #[test]
 fn generate_data_key_returns_buffer() {
     let mut handle = std::ptr::null_mut();
@@ -85,6 +91,7 @@ fn generate_data_key_returns_buffer() {
     assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
 }
 
+// generate_mlkem_keypair_returns_json_buffer 함수는 암호화에 사용할 새 키나 바이트 값을 생성
 #[test]
 fn generate_mlkem_keypair_returns_json_buffer() {
     let mut handle = std::ptr::null_mut();
@@ -118,6 +125,7 @@ fn generate_mlkem_keypair_returns_json_buffer() {
     assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
 }
 
+// encrypt_and_decrypt_package_round_trip_succeeds 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn encrypt_and_decrypt_package_round_trip_succeeds() {
     let mut handle = std::ptr::null_mut();
@@ -177,6 +185,7 @@ fn encrypt_and_decrypt_package_round_trip_succeeds() {
     assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
 }
 
+// create_and_open_key_envelope_round_trip_succeeds 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn create_and_open_key_envelope_round_trip_succeeds() {
     let mut handle = std::ptr::null_mut();
@@ -227,6 +236,7 @@ fn create_and_open_key_envelope_round_trip_succeeds() {
     assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
 }
 
+// create_additional_recipient_envelope_and_open_with_new_recipient_succeeds 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn create_additional_recipient_envelope_and_open_with_new_recipient_succeeds() {
     let mut handle = std::ptr::null_mut();
@@ -307,6 +317,7 @@ fn create_additional_recipient_envelope_and_open_with_new_recipient_succeeds() {
     assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
 }
 
+// invalid_handle_failure_records_last_error_message 함수는 마지막 오류 정보를 읽거나 예외 객체로 변환
 #[test]
 fn invalid_handle_failure_records_last_error_message() {
     let public_key = [1u8; 4];
@@ -323,6 +334,7 @@ fn invalid_handle_failure_records_last_error_message() {
     assert_eq!(read_last_error_message(), "invalid handle");
 }
 
+// malformed_inputs_record_last_error_message 함수는 외부 타입과 내부 타입 사이의 값을 변환
 #[test]
 fn malformed_inputs_record_last_error_message() {
     let mut handle = std::ptr::null_mut();
@@ -344,6 +356,7 @@ fn malformed_inputs_record_last_error_message() {
     assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
 }
 
+// successful_call_clears_last_error_message 함수는 마지막 오류 정보를 읽거나 예외 객체로 변환
 #[test]
 fn successful_call_clears_last_error_message() {
     let public_key = [1u8; 4];
@@ -366,6 +379,7 @@ fn successful_call_clears_last_error_message() {
     assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
 }
 
+// last_error_message_copy_validates_buffer_rules 함수는 입력값이나 호출 결과가 유효한지 확인
 #[test]
 fn last_error_message_copy_validates_buffer_rules() {
     let public_key = [1u8; 4];
@@ -390,6 +404,7 @@ fn last_error_message_copy_validates_buffer_rules() {
     assert_eq!(read_last_error_message(), "invalid handle");
 }
 
+// envelope_functions_with_null_or_invalid_length_input_fail 함수는 외부 타입과 내부 타입 사이의 값을 변환
 #[test]
 fn envelope_functions_with_null_or_invalid_length_input_fail() {
     let mut handle = std::ptr::null_mut();
@@ -440,6 +455,7 @@ fn envelope_functions_with_null_or_invalid_length_input_fail() {
     assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
 }
 
+// decrypt_package_with_invalid_handle_fails 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn decrypt_package_with_invalid_handle_fails() {
     let package_bytes = b"{}";
@@ -457,6 +473,7 @@ fn decrypt_package_with_invalid_handle_fails() {
     assert_eq!(code, FfiErrorCode::InvalidHandle);
 }
 
+// decrypt_package_with_null_or_invalid_length_input_fails 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn decrypt_package_with_null_or_invalid_length_input_fails() {
     let mut handle = std::ptr::null_mut();
@@ -493,6 +510,7 @@ fn decrypt_package_with_null_or_invalid_length_input_fails() {
     assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
 }
 
+// decrypt_package_with_malformed_package_bytes_fails 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
 #[test]
 fn decrypt_package_with_malformed_package_bytes_fails() {
     let mut handle = std::ptr::null_mut();
@@ -513,6 +531,7 @@ fn decrypt_package_with_malformed_package_bytes_fails() {
     assert_eq!(crypto_ffi_facade_free(handle), FfiErrorCode::Ok);
 }
 
+// byte_buffer_free_accepts_null_buffer 함수는 FFI로 전달된 버퍼 메모리를 해제
 #[test]
 fn byte_buffer_free_accepts_null_buffer() {
     assert_eq!(

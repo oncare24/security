@@ -17,6 +17,7 @@ pub struct FfiTimestamp {
 }
 
 impl FfiTimestamp {
+    // to_system_time 함수는 외부 타입과 내부 타입 사이의 값을 변환
     pub fn to_system_time(self) -> Timestamp {
         UNIX_EPOCH + Duration::from_secs(self.unix_seconds)
     }
@@ -43,6 +44,7 @@ pub enum FfiOwnerType {
 impl TryFrom<FfiOwnerType> for OwnerType {
     type Error = FfiErrorCode;
 
+    // try_from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn try_from(value: FfiOwnerType) -> Result<Self, Self::Error> {
         match value {
             FfiOwnerType::User => Ok(OwnerType::User),

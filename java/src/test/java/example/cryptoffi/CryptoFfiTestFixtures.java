@@ -14,9 +14,11 @@ final class CryptoFfiTestFixtures {
     static final byte[] GUARDIAN_PUBLIC_KEY = readHexFixture("GUARDIAN_PUBLIC_KEY_HEX");
     static final byte[] GUARDIAN_PRIVATE_KEY = readHexFixture("GUARDIAN_PRIVATE_KEY_HEX");
 
+    // CryptoFfiTestFixtures 함수는 예외나 헬퍼 객체의 기본 상태를 초기화
     private CryptoFfiTestFixtures() {
     }
 
+    // readHexFixture 함수는 조건에 맞는 값을 조회해 반환
     private static byte[] readHexFixture(String constantName) {
         Path fixturesPath = resolveFixturesPath();
         String text;
@@ -35,6 +37,7 @@ final class CryptoFfiTestFixtures {
         return HexFormat.of().parseHex(matcher.group(1));
     }
 
+    // resolveFixturesPath 함수는 사용할 경로나 설정 값을 찾아 확정
     private static Path resolveFixturesPath() {
         Path cwd = Path.of("").toAbsolutePath().normalize();
         Path[] candidates = {

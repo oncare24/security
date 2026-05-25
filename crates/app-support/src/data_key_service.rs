@@ -23,6 +23,7 @@ pub enum DataKeyServiceError {
 }
 
 impl fmt::Display for DataKeyServiceError {
+    // fmt 함수는 값이나 에러를 사람이 읽기 쉬운 문자열로 포맷
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Repository(message) => write!(f, "data key repository error: {message}"),
@@ -116,10 +117,12 @@ impl<R> DataKeyProvider for DataKeyService<R>
 where
     R: DataKeyRepository + Send + Sync,
 {
+    // get_or_create_current_key 함수는 조건에 맞는 값을 조회해 반환
     fn get_or_create_current_key(&self) -> Result<DataKey, DataKeyServiceError> {
         DataKeyService::get_or_create_current_key(self)
     }
 
+    // get_or_create_key_for 함수는 조건에 맞는 값을 조회해 반환
     fn get_or_create_key_for(&self, timestamp: Timestamp) -> Result<DataKey, DataKeyServiceError> {
         DataKeyService::get_or_create_key_for(self, timestamp)
     }
@@ -133,6 +136,7 @@ struct KeySchedule {
 
 //날짜 기반 key 생성 함수
 impl KeySchedule {
+    // from_timestamp 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from_timestamp(timestamp: Timestamp) -> Result<Self, DataKeyServiceError> {
         let seconds_since_epoch = timestamp
             .duration_since(UNIX_EPOCH)
@@ -178,6 +182,7 @@ mod tests {
 
     use super::*;
 
+    // reuses_existing_key_for_same_day 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     #[test]
     fn reuses_existing_key_for_same_day() {
         let repository = InMemoryDataKeyRepository::default();
@@ -197,6 +202,7 @@ mod tests {
         assert_eq!(first_key.expires_at, second_key.expires_at);
     }
 
+    // rotates_key_when_day_changes 함수는 해당 시나리오가 기대한 대로 동작하는지 검증
     #[test]
     fn rotates_key_when_day_changes() {
         let repository = InMemoryDataKeyRepository::default();

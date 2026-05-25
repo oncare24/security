@@ -35,6 +35,7 @@ pub struct FfiErrorInfo {
 }
 
 impl FfiErrorInfo {
+    // new 함수는 필요한 값을 받아 새 인스턴스를 생성
     pub fn new(code: FfiErrorCode, message: impl Into<String>) -> Self {
         Self {
             code,
@@ -45,6 +46,7 @@ impl FfiErrorInfo {
 
 // 내부 암호화 계층에서 오류가 나더라도 FFI 수준에서는 일단 암호 처리 실패로 분류 해줌
 impl From<&CoreFacadeError> for FfiErrorCode {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(_: &CoreFacadeError) -> Self {
         Self::CryptoError
     }

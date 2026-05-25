@@ -31,6 +31,7 @@ class FfiOwnerType(IntEnum):
 
 
 class CryptoFfiError(RuntimeError):
+    # __init__ 함수는 객체를 사용할 수 있도록 초기 상태를 준비
     def __init__(self, code: int, message: str) -> None:
         self.code = FfiErrorCode(code) if code in FfiErrorCode._value2member_map_ else code
         self.message = message or "crypto-ffi call failed"
@@ -121,6 +122,7 @@ class FfiCreateAdditionalRecipientEnvelopeRequest(ctypes.Structure):
 
 
 class _BorrowedArg:
+    # __init__ 함수는 객체를 사용할 수 있도록 초기 상태를 준비
     def __init__(self, data: Union[str, BytesLike, None]) -> None:
         if isinstance(data, str):
             raw = data.encode("utf-8")
@@ -142,6 +144,7 @@ class _BorrowedArg:
 
 
 class CryptoFacade:
+    # __init__ 함수는 객체를 사용할 수 있도록 초기 상태를 준비
     def __init__(self, library_path: Optional[Union[str, os.PathLike[str]]] = None) -> None:
         self._library_path = self._resolve_library_path(library_path)
         if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
@@ -151,22 +154,27 @@ class CryptoFacade:
         self._handle: Optional[LP_FfiFacadeHandle] = None
         self._create_handle()
 
+    # __enter__ 함수는 컨텍스트 매니저 진입 시 사용할 객체를 반환
     def __enter__(self) -> "CryptoFacade":
         return self
 
+    # __exit__ 함수는 컨텍스트 매니저 종료 시 리소스를 정리
     def __exit__(self, exc_type, exc, tb) -> None:
         self.close()
 
+    # __del__ 함수는 객체가 해제될 때 남은 리소스를 정리
     def __del__(self) -> None:
         try:
             self.close()
         except Exception:
             pass
 
+    # library_path 함수는 요청에 사용할 경로나 URI 값을 구성
     @property
     def library_path(self) -> Path:
         return self._library_path
 
+    # _resolve_library_path 함수는 사용할 경로나 설정 값을 찾아 확정
     @classmethod
     def _resolve_library_path(
         cls, library_path: Optional[Union[str, os.PathLike[str]]]
@@ -213,6 +221,7 @@ class CryptoFacade:
             f"Searched:\n{searched}"
         )
 
+    # _platform_library_names 함수는 현재 OS에서 사용할 수 있는 라이브러리 파일명을 반환
     @staticmethod
     def _platform_library_names() -> list[str]:
         if sys.platform == "win32":
@@ -221,6 +230,7 @@ class CryptoFacade:
             return ["libcrypto_ffi.dylib", "crypto_ffi.dylib"]
         return ["libcrypto_ffi.so", "crypto_ffi.so"]
 
+    # _configure_functions 함수는 네이티브 함수 호출에 필요한 타입 정보를 설정
     def _configure_functions(self) -> None:
         self._lib.crypto_ffi_facade_new_default.argtypes = [ctypes.POINTER(LP_FfiFacadeHandle)]
         self._lib.crypto_ffi_facade_new_default.restype = ctypes.c_int32
@@ -281,12 +291,14 @@ class CryptoFacade:
         self._lib.crypto_ffi_last_error_message_copy.argtypes = [LP_c_uint8, ctypes.c_size_t]
         self._lib.crypto_ffi_last_error_message_copy.restype = ctypes.c_int32
 
+    # _create_handle 함수는 요청 값을 바탕으로 새 결과 객체를 생성
     def _create_handle(self) -> None:
         handle = LP_FfiFacadeHandle()
         code = self._lib.crypto_ffi_facade_new_default(ctypes.byref(handle))
         self._check_code(code)
         self._handle = handle
 
+    # close 함수는 사용이 끝난 리소스를 정리
     def close(self) -> None:
         if self._handle is None:
             return
@@ -296,6 +308,7 @@ class CryptoFacade:
         if code != FfiErrorCode.OK:
             raise self._error_from_code(code)
 
+    # last_error_message 함수는 마지막 오류 정보를 읽거나 예외 객체로 변환
     def last_error_message(self) -> str:
         length = int(self._lib.crypto_ffi_last_error_message_length())
         if length == 0:
@@ -306,6 +319,7 @@ class CryptoFacade:
             return f"unable to copy last error message (code={int(code)})"
         return bytes(buffer[:length]).decode("utf-8", errors="replace")
 
+    # generate_data_key 함수는 암호화에 사용할 새 키나 바이트 값을 생성
     def generate_data_key(
         self,
         key_id: Union[str, BytesLike],
@@ -321,6 +335,7 @@ class CryptoFacade:
             ctypes.c_uint64(expires_at_unix_seconds),
         )
 
+    # encrypt_package 함수는 평문과 키 정보를 사용해 암호화 결과를 만듦
     def encrypt_package(
         self,
         plaintext: BytesLike,
@@ -357,6 +372,7 @@ class CryptoFacade:
             keepalive=[plaintext_arg, user_public_key_arg, guardian_public_key_arg, key_id_arg],
         )
 
+    # decrypt_package 함수는 암호문과 키 정보를 사용해 원문을 복원
     def decrypt_package(
         self,
         package_bytes: BytesLike,
@@ -379,6 +395,7 @@ class CryptoFacade:
             keepalive=[package_arg, private_key_arg],
         )
 
+    # create_key_envelope 함수는 요청 값을 바탕으로 새 결과 객체를 생성
     def create_key_envelope(
         self,
         data_key_id: Union[str, BytesLike],
@@ -409,6 +426,7 @@ class CryptoFacade:
             keepalive=[key_id_arg, public_key_arg],
         )
 
+    # open_key_envelope 함수는 envelope나 외부 값을 열어 내부 key를 복원
     def open_key_envelope(
         self,
         envelope_bytes: BytesLike,
@@ -431,6 +449,7 @@ class CryptoFacade:
             keepalive=[envelope_arg, private_key_arg],
         )
 
+    # create_additional_recipient_envelope 함수는 요청 값을 바탕으로 새 결과 객체를 생성
     def create_additional_recipient_envelope(
         self,
         source_envelope_bytes: BytesLike,
@@ -460,15 +479,18 @@ class CryptoFacade:
             keepalive=[source_envelope_arg, current_private_key_arg, new_public_key_arg],
         )
 
+    # load_wire_json 함수는 외부 리소스나 라이브러리를 읽어 사용할 수 있게 준비
     @staticmethod
     def load_wire_json(wire_bytes: BytesLike) -> Any:
         return json.loads(bytes(wire_bytes).decode("utf-8"))
 
+    # _require_handle 함수는 입력값이나 호출 결과가 유효한지 확인
     def _require_handle(self) -> LP_FfiFacadeHandle:
         if self._handle is None:
             raise RuntimeError("CryptoFacade is already closed")
         return self._handle
 
+    # _make_data_key_input 함수는 외부 타입과 내부 타입 사이의 값을 변환
     def _make_data_key_input(
         self,
         key_id: Union[str, BytesLike],
@@ -490,6 +512,7 @@ class CryptoFacade:
         )
         return data_key_input, key_id_arg
 
+    # _call_bytes_function 함수는 바이트 버퍼를 호출자가 사용할 형태로 변환
     def _call_bytes_function(self, func, *args, keepalive=None) -> bytes:
         _ = keepalive
         out_buffer = FfiByteBuffer()
@@ -504,10 +527,12 @@ class CryptoFacade:
             if free_code != FfiErrorCode.OK:
                 raise self._error_from_code(free_code)
 
+    # _check_code 함수는 입력값이나 호출 결과가 유효한지 확인
     def _check_code(self, code: int) -> None:
         if code != FfiErrorCode.OK:
             raise self._error_from_code(code)
 
+    # _error_from_code 함수는 외부 타입과 내부 타입 사이의 값을 변환
     def _error_from_code(self, code: int) -> CryptoFfiError:
         return CryptoFfiError(code, self.last_error_message())
 

@@ -16,6 +16,7 @@ from fixtures import (
 )
 
 
+# main 함수는 예제 실행 흐름을 시작
 def main() -> None:
     try:
         with CryptoFacade() as facade:

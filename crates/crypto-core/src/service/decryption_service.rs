@@ -15,6 +15,7 @@ pub struct DecryptionCaller {
 }
 
 impl DecryptionCaller {
+    // new 함수는 필요한 값을 받아 새 인스턴스를 생성
     pub fn new(owner_id: u64, owner_type: OwnerType) -> Self {
         Self {
             owner_id,
@@ -34,6 +35,7 @@ pub enum DecryptionServiceError {
 }
 
 impl fmt::Display for DecryptionServiceError {
+    // fmt 함수는 값이나 에러를 사람이 읽기 쉬운 문자열로 포맷
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Kem(error) => write!(f, "{error}"),
@@ -55,18 +57,21 @@ impl fmt::Display for DecryptionServiceError {
 impl Error for DecryptionServiceError {}
 
 impl From<KemBackendError> for DecryptionServiceError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: KemBackendError) -> Self {
         Self::Kem(value)
     }
 }
 
 impl From<AeadBackendError> for DecryptionServiceError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: AeadBackendError) -> Self {
         Self::Aead(value)
     }
 }
 
 impl From<KeyWrapError> for DecryptionServiceError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: KeyWrapError) -> Self {
         Self::KeyWrap(value)
     }
@@ -89,6 +94,7 @@ impl DecryptionService {
         }
     }
 
+    // decrypt_log 함수는 암호문과 키 정보를 사용해 원문을 복원
     pub fn decrypt_log(
         &self,
         crypto_package: &CryptoPackage,

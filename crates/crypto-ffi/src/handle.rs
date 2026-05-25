@@ -36,6 +36,7 @@ pub struct FfiHandleInitError {
 }
 
 impl FfiHandleInitError {
+    // new 함수는 필요한 값을 받아 새 인스턴스를 생성
     pub fn new(code: FfiErrorCode, message: impl Into<String>) -> Self {
         Self {
             code,
@@ -43,6 +44,7 @@ impl FfiHandleInitError {
         }
     }
 
+    // as_error_info 함수는 마지막 오류 정보를 읽거나 예외 객체로 변환
     pub fn as_error_info(&self) -> FfiErrorInfo {
         FfiErrorInfo::new(self.code, self.message.clone())
     }

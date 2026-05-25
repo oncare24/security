@@ -31,6 +31,7 @@ pub enum CoreFacadeError {
 
 //에러 출력을 위한 부분
 impl fmt::Display for CoreFacadeError {
+    // fmt 함수는 값이나 에러를 사람이 읽기 쉬운 문자열로 포맷
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Random(error) => write!(f, "{error}"),
@@ -47,36 +48,42 @@ impl fmt::Display for CoreFacadeError {
 impl Error for CoreFacadeError {}
 
 impl From<SecureRandomError> for CoreFacadeError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: SecureRandomError) -> Self {
         Self::Random(value)
     }
 }
 
 impl From<KemBackendError> for CoreFacadeError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: KemBackendError) -> Self {
         Self::Kem(value)
     }
 }
 
 impl From<EncryptionServiceError> for CoreFacadeError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: EncryptionServiceError) -> Self {
         Self::Encryption(value)
     }
 }
 
 impl From<DecryptionServiceError> for CoreFacadeError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: DecryptionServiceError) -> Self {
         Self::Decryption(value)
     }
 }
 
 impl From<KeyManagementServiceError> for CoreFacadeError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: KeyManagementServiceError) -> Self {
         Self::KeyManagement(value)
     }
 }
 
 impl From<SharingServiceError> for CoreFacadeError {
+    // from 함수는 외부 타입과 내부 타입 사이의 값을 변환
     fn from(value: SharingServiceError) -> Self {
         Self::Sharing(value)
     }
@@ -118,6 +125,7 @@ impl CoreFacade {
         )
     }
 
+    // with_components 함수는 외부에서 받은 의존성을 주입해 객체를 구성
     pub fn with_components(
         encryption_service: EncryptionService,
         decryption_service: DecryptionService,
@@ -147,6 +155,7 @@ impl CoreFacade {
         Ok(DataKey::new(key_id, key_value, created_at, expires_at))
     }
 
+    // generate_mlkem_keypair 함수는 암호화에 사용할 새 키나 바이트 값을 생성
     pub fn generate_mlkem_keypair(&self) -> Result<(Vec<u8>, Vec<u8>), CoreFacadeError> {
         Ok(self.key_management_service.generate_keypair()?)
     }

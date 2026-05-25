@@ -11,6 +11,7 @@ pub struct DataKey {
 }
 
 impl DataKey {
+    // new 함수는 필요한 값을 받아 새 인스턴스를 생성
     pub fn new(
         key_id: impl Into<String>,
         key_value: [u8; 32],

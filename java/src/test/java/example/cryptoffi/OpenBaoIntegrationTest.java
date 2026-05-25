@@ -1,14 +1,13 @@
 package example.cryptoffi;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
-
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import org.junit.jupiter.api.Test;
 
 final class OpenBaoIntegrationTest {
@@ -89,12 +88,14 @@ final class OpenBaoIntegrationTest {
         }
     }
 
+    // requireOpenBaoClient 함수는 입력값이나 호출 결과가 유효한지 확인
     private static OpenBaoClient requireOpenBaoClient() {
         Optional<OpenBaoClient> client = OpenBaoClient.fromEnvironment();
         assumeTrue(client.isPresent(), "BAO_ADDR and BAO_TOKEN must be set for OpenBao integration tests");
         return client.orElseThrow();
     }
 
+    // newDataKey 함수는 필요한 값을 받아 새 인스턴스를 생성
     private static OpenBaoClient.StoredDataKey newDataKey(String keyIdPrefix) {
         byte[] keyValue = new byte[32];
         SECURE_RANDOM.nextBytes(keyValue);
