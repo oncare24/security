@@ -4,7 +4,7 @@
 
 주요 목적은 다음과 같다.
 
-- 로그 분석 결과를 AES-256-GCM으로 암호화
+- 로그 분석에 필요한 원천 데이터를 AES-256-GCM으로 암호화
 - Data Key를 ML-KEM 기반 Key Envelope로 보호
 - 사용자와 보호자 각각이 동일한 암호화 데이터를 열람할 수 있도록 Envelope 생성
 - Java JNA 및 Python ctypes를 통한 FFI 연동 지원
